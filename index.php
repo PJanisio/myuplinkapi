@@ -9,13 +9,12 @@ github: https://github.com/PJanisio/myuplinkapi
 
 # EXAMPLE
 
+
 include('myuplink.php');
 
 $nibe = new myuplink('config.php');
 
-    //var_dump($nibe->config);
-
-    echo $nibe->authURL();
+    $nibe->authorizeAPI();
 
 
 ?>

@@ -1,11 +1,4 @@
 <?php
-/*
-myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.0.1
-Author: Pawel 'Pavlus' Janisio
-License: GPL v3
-github: https://github.com/PJanisio/myuplinkapi
-*/
 
 #CONFIG FILE
 #CREATE APP ON myuplink.com to get data
@@ -17,7 +10,8 @@ $config =
 		    "clientSecret" => 'xxxxxxxxx',
 		    'redirectUri'		=> 'xxxxxxxxx',
             'scope' => 'READSYSTEM WRITESYSTEM offline_access',
-		    'debug'		=> FALSE,
+			'curl_http_version' => '\CURL_HTTP_VERSION_1_1',
+		    'debug'		=> FALSE
         	];
 
 ?>
