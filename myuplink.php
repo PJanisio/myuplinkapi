@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.1.1
+Version: 0.3.1
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -15,6 +15,8 @@ class myuplink {
     public array $config;
     private string $configPath;
     public string $authURL = '';
+    public $token;
+    public $tokenStatus = array();
 
 
     public function __construct(string $configPath) {
@@ -24,7 +26,7 @@ class myuplink {
             $this->config = $config;
             
             if($this->config['debug'] == TRUE) {
-                echo '<pre>';
+                echo '<pre> Config: ';
                 var_dump($this->config);
                 echo '</pre>';
             }
@@ -42,8 +44,20 @@ class myuplink {
         
     }
     
+
+    
     public function authorizeAPI () {
         
+        //first we need to check if we have a token, than if token is valid
+        if($this->tokenStatus() != FALSE) {
+            //we are already authorized!
+            echo 'You are authorized!';
+            header( 'Refresh:3; url='.$this->config['redirectUri'].'', true, 303);
+            exit();
+        }
+            
+        
+        //check if user if after authorization from myuplink
         if (isset($_GET) AND isset($_GET['code'])) {
             
             $code = urlencode($_GET['code']);
@@ -57,14 +71,26 @@ class myuplink {
 		   curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
 		   
 		   
-		   $response = curl_exec($c);
+		   $c_answer = curl_exec($c);
 		   
-		   //we should have a token here
+		   //we should have a token here, debug output if needed
 		    if($this->config['debug'] == TRUE) {
-		        echo '<pre>';
-		   var_dump($response);
-		   echo '</pre>';
-		    }
+		        echo '<pre> MyUplink.com answer: ';
+		   var_dump($c_answer);
+		        echo '</pre>';
+		        }
+		  
+		   //check answer and token parsing
+		    $token = json_decode($c_answer, TRUE);
+		        if($token == NULL OR curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
+		           //we didnt received token :(
+		           echo 'Error resolving token: ' . curl_error($c);
+		        }
+		            else {
+		                //save token
+		                file_put_contents($this->config['tokenPath'], json_encode($token));
+		            }
+		   
 
         }
         else {
@@ -72,6 +98,67 @@ class myuplink {
             echo 'You are not authorized. Please follow this <a href="'.$this->authURL().'">LINK</a>'; 
         }
         
+        //close copnnection
+        if(isset($c)) {
+            curl_close($c);
+        }
+        
+        
+		return $token;
+
+
+    }
+    
+    
+    private function clearToken () {
+        
+        $clear = file_put_contents($this->config['tokenPath'], '');
+        
+            if(!empty(file_get_contents($this->config['tokenPath']))) {
+                echo 'Can not clear token data, check if json folder has a write access';
+                exit();
+            }
+            else {
+                return TRUE;
+            }
+        
+    }
+    
+
+    public function tokenStatus() {
+        
+        $this->tokenStatus = json_decode(file_get_contents($this->config['tokenPath']), TRUE);
+        
+        if($this->config['debug'] == TRUE) {
+            echo '<pre> Token Status: ';
+		   var_dump($this->tokenStatus);
+		        echo '</pre>';
+        }
+		        
+        
+            if($this->tokenStatus == NULL) {
+                
+                $this->clearToken();
+                return FALSE;
+            }
+            else {
+                
+                //lets check if our token didnt expired
+                $mod_time = filemtime($this->config['tokenPath']);
+                    if(time() - $mod_time >= $this->tokenStatus['expires_in']) {
+                        
+                        //token expired
+                        $this->clearToken();
+                            return FALSE;
+                    }
+                    else {
+                //returning array
+                return $this->tokenStatus;
+                
+                    }
+            }
+            
+
     }
 
 
