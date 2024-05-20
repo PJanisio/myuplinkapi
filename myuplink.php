@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.3.1
+Version: 0.3.2
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -15,8 +15,9 @@ class myuplink {
     public array $config;
     private string $configPath;
     public string $authURL = '';
-    public $token;
+    public $token = array();
     public $tokenStatus = array();
+    public int $tokenLife = 0;
 
 
     public function __construct(string $configPath) {
@@ -49,16 +50,23 @@ class myuplink {
     public function authorizeAPI () {
         
         //first we need to check if we have a token, than if token is valid
-        if($this->tokenStatus() != FALSE) {
+        if($this->tokenStatus() != FALSE ) {
             //we are already authorized!
-            echo 'You are authorized!';
+            echo 'You are authorized! Token will expire in '.$this->tokenLife.' seconds.';
+            exit();
+            
+            if (isset($_GET) AND isset($_GET['code'])) {
+            echo 'You are authorized! Token will expire in '.$this->tokenLife.' seconds.';
             header( 'Refresh:3; url='.$this->config['redirectUri'].'', true, 303);
             exit();
+            
+            }
         }
             
         
         //check if user if after authorization from myuplink
         if (isset($_GET) AND isset($_GET['code'])) {
+
             
             $code = urlencode($_GET['code']);
             
@@ -124,6 +132,25 @@ class myuplink {
         
     }
     
+    
+    public function tokenExpiry() {
+        
+      $mod_time = filemtime($this->config['tokenPath']);
+        $t_left = intval(3600 - (time() - $mod_time));
+        
+            $this->tokenLife = $t_left;
+            if($this->tokenLife >= $this->tokenStatus['expires_in']) {
+                
+                //token expired
+                return FALSE;
+            }
+            else {
+                return $this->tokenLife; //seconds
+            }
+        
+    }
+    
+    
 
     public function tokenStatus() {
         
@@ -144,13 +171,12 @@ class myuplink {
             else {
                 
                 //lets check if our token didnt expired
-                $mod_time = filemtime($this->config['tokenPath']);
-                    if(time() - $mod_time >= $this->tokenStatus['expires_in']) {
-                        
-                        //token expired
-                        $this->clearToken();
-                            return FALSE;
-                    }
+               if($this->tokenExpiry() == FALSE) {
+                   
+                   $this->clearToken();
+                return FALSE;
+                   
+               }
                     else {
                 //returning array
                 return $this->tokenStatus;
@@ -163,6 +189,7 @@ class myuplink {
 
 
 
-}
+} //end of class
+
 
 ?>
