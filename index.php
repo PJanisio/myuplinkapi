@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.4.3
+Version: 0.6.5
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -10,11 +10,16 @@ github: https://github.com/PJanisio/myuplinkapi
 # EXAMPLE
 
 
-include('myuplink.php');
+include('src/myuplink.php');
 
-$nibe = new myuplink('config.php');
+$nibe = new myuplink('config.php'); //best practise - use absolute path
 
-    $nibe->authorizeAPI();
-
+    //authorization, getting token and its status
+    if($nibe->authorizeAPI() == TRUE) {
+    
+    //get data from api/device
+    $nibe->getData($nibe->endpoints['system']);
+    
+    }
 
 ?>
