@@ -31,4 +31,3 @@ $nibe = new myuplink('config.php'); //best practise - use absolute path
         $nibeGet = new myuplinkGet($nibe);
     
     }
-    ```
