@@ -15,11 +15,16 @@ $config =
 			'debug' => TRUE //TRUE = dump of information of received data
         	];
         	
+
+
+			
+//do not change	
 //array of possible endpoints in myUplink API  
 //https://api.myuplink.com/swagger/index.html
 $endpoints =
 	        [
-		    'system'  => '/v2/systems/me'
+		    'system' => '/v2/systems/me',
+		    'devicePoints' => '/v2/devices{deviceId}/points'
         	];
 
 ?>
