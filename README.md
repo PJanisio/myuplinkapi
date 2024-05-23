@@ -15,7 +15,7 @@ Goal is to have easy, non dependent class which will be cron ready to fetch all 
 
 
 ### Example
-Current state: class can authorize, refresh authorization token and get raw data. First release will fetch all device parameters into jSon.
+Current state: class can authorize, refresh authorization token and save ALL device parameters to jSON. See [example output](https://pastebin.pl/view/raw/dbd66f2e)
 
 ```php
 include('src/myuplink.php');
@@ -25,9 +25,13 @@ $nibe = new myuplink('config.php'); //best practise - use absolute path
     
 
     //authorization, getting token and its status
-    if($nibe->authorizeAPI() == TRUE) {
-        
-        //if authorized switching to class which parse data
-        $nibeGet = new myuplinkGet($nibe);
+    if($nibe->authorizeAPI() == TRUE)
     
+    {
+        //if authorized switching to class which get data
+        $nibeGet = new myuplinkGet($nibe);
+
+    
+        //get all parameters from device and save to jSON
+        $nibeGet->getDevicePoints();
     }

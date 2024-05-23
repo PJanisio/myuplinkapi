@@ -24,7 +24,7 @@ $config =
 $endpoints =
 	        [
 		    'system' => '/v2/systems/me',
-		    'devicePoints' => '/v2/devices{deviceId}/points'
+		    'devicePoints' => '/v3/devices/{deviceId}/points'
         	];
 
 ?>

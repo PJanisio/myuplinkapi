@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.7.6
+Version: 0.8.7
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.7.6';
+	const VERSION = '0.8.7';
 	public $config = array();
 	private $authorized = FALSE;
 	public $endpoints = array();
@@ -57,7 +57,7 @@ class myuplink
 	   Internal function to rtedirect after class operations
 	   return function of redirect
 	   */
-	protected function redirectMe(int $delay = 3, string $uri)
+	protected function redirectMe(string $uri, int $delay = 3)
 	{
 
 		return header('Refresh:' . $delay . '; url=' . $uri);
@@ -93,6 +93,7 @@ class myuplink
 			var_dump($this->endpoints);
 			echo '</pre>';
 		}
+
 		//returns array of endpoints
 		return $this->endpoints;
 	}
@@ -156,7 +157,7 @@ class myuplink
 				//we should have a token here, debug output if needed
 				if ($this->config['debug'] == TRUE) {
 					echo '<pre> DEBUG: MyUplink.com answer: ';
-					var_dump($c_answer);
+					var_dump(json_decode($c_answer));
 					echo '</pre>';
 				}
 
@@ -167,11 +168,11 @@ class myuplink
 					//we didnt received token :(
 					if (curl_error($c) != NULL) {
 						echo $this->msg('Error resolving token: ' . curl_error($c));
-						$this->redirectMe(3, $this->config['redirectUri']);
+						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					} else {
 						echo $this->msg('Error resolving token: ' . $c_answer);
-						$this->redirectMe(3, $this->config['redirectUri']);
+						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					}
 
@@ -188,7 +189,7 @@ class myuplink
 					if (isset($c)) {
 						curl_close($c);
 
-						$this->redirectMe(0, $this->config['redirectUri']);
+						$this->redirectMe($this->config['redirectUri'], 0);
 						return TRUE;
 					}
 
@@ -225,7 +226,7 @@ class myuplink
 		//we should have a token here, debug output if needed
 		if ($this->config['debug'] == TRUE) {
 			echo '<pre> DEBUG: MyUplink.com answer: ';
-			var_dump($c_answer);
+			var_dump(json_decode($c_answer));
 			echo '</pre>';
 		}
 
@@ -237,7 +238,7 @@ class myuplink
 			//we didnt received token :(
 			if (curl_error($c) != NULL) {
 				echo $this->msg('Error resolving token: ' . curl_error($c));
-				$this->redirectMe(3, $this->config['redirectUri']);
+				$this->redirectMe($this->config['redirectUri'], 0);
 			} else {
 				echo $this->msg('Error resolving token: ' . $c_answer);
 
@@ -245,7 +246,7 @@ class myuplink
 					curl_close($c);
 				}
 
-				$this->redirectMe(3, $this->config['redirectUri']);
+				$this->redirectMe($this->config['redirectUri'], 3);
 
 				return FALSE;
 			}
@@ -358,7 +359,7 @@ class myuplink
 				//update token expiry
 				$this->tokenExpiry();
 				//redirect to main site
-				$this->redirectMe(3, $this->config['redirectUri']);
+				$this->redirectMe($this->config['redirectUri'], 3);
 
 				return $this->tokenStatus;
 			}
@@ -399,7 +400,7 @@ class myuplink
 		//see raw answer 
 		if ($this->config['debug'] == TRUE) {
 			echo '<pre> DEBUG [READ]: MyUplink.com answer: ';
-			var_dump($c_answer);
+			var_dump(json_decode($c_answer));
 			echo '</pre>';
 		}
 
@@ -409,7 +410,7 @@ class myuplink
 			//we didnt received answer
 			if (curl_error($c) != NULL) {
 				echo $this->msg('Error resolving answer: ' . curl_error($c));
-				$this->redirectMe(3, $this->config['redirectUri']);
+				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
 				echo $this->msg('Error resolving answer: ' . $c_answer);
 
