@@ -4,7 +4,7 @@
 It`s PHP class to authorize, get and set data for Nibe devices using [Nibe myUplink](https://www.myuplink.com/) successor of NibeUplink (which will be closed summer 2024).
 
 ### What is needed?
- - PHP version 7.4+
+ - PHP version 7.4+ (with lib php-curl)
  - Account and application created on [myUplink](https://dev.myuplink.com/login)
 
 ### What is not needed?
