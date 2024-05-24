@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.11.8
+Version: 0.13.9
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.11.8';
+	const VERSION = '0.13.9';
 	
 	public $config = array();
 	private $authorized = FALSE;
@@ -25,6 +25,7 @@ class myuplink
 	public $tokenStatus = array();
 	public int $tokenLife = 0;
 	protected string $msg = '';
+	protected string $debug = '';
 
 	/*
 	   Prepare configuration variables
@@ -70,12 +71,29 @@ class myuplink
 	protected function msg(string $text)
 	{
 
-		$this->msg = '<fieldset><legend><b>System message</b></legend>
+		echo $this->msg = '<fieldset><legend><b>System message</b></legend>
 					' . $text . '
 				</fieldset>';
 
-		return $this->msg;
+		return NULL;
 
+	}
+	
+	/*
+	   Internal function to send debug <pre> messages
+	   return var_dump of variable
+	   */
+	protected function debugMsg(string $title, $var)
+	{
+
+	if ($this->config['debug'] == TRUE)
+	    {
+		echo $this->debug = '<pre>'.$title;
+		var_dump($var);
+		echo '</pre>';
+		}
+
+        return NULL;
 	}
 
 
@@ -88,13 +106,9 @@ class myuplink
 		include ($this->config['configPath']);
 		//load endpoints
 		$this->endpoints = $endpoints;
-
-		if ($this->config['debug'] == TRUE) {
-			echo '<pre> DEBUG: Endpoints: ';
-			var_dump($this->endpoints);
-			echo '</pre>';
-		}
-
+        
+        $this->debugMsg('DEBUG: Endpoints:', $this->endpoints);
+        
 		//returns array of endpoints
 		return $this->endpoints;
 	}
@@ -128,12 +142,12 @@ class myuplink
 			$this->loadEndpoints();
 
 			//we are already authorized!
-			echo $this->msg('You are authorized! Token will expire in ' . $this->tokenLife . ' seconds.');
+			$this->msg('You are authorized! Token will expire in ' . $this->tokenLife . ' seconds.');
 			return TRUE;
 
 		} else if (!isset($_GET['code']) and $this->authorized == FALSE) {
 
-			echo $this->msg('You are not authorized. Please follow this <a href="' . $this->authURL() . '">LINK</a>');
+			$this->msg('You are not authorized. Please follow this <a href="' . $this->authURL() . '">LINK</a>');
 			return FALSE;
 		}
 
@@ -156,23 +170,18 @@ class myuplink
 				$c_answer = curl_exec($c);
 
 				//we should have a token here, debug output if needed
-				if ($this->config['debug'] == TRUE) {
-					echo '<pre> DEBUG: MyUplink.com answer: ';
-					var_dump(json_decode($c_answer));
-					echo '</pre>';
-				}
-
+				$this->debugMsg('DEBUG: MyUplink.com answer:', json_decode($c_answer));
 				//check answer and token parsing
 				$token = json_decode($c_answer, TRUE);
 				if ($token == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
 
 					//we didnt received token :(
 					if (curl_error($c) != NULL) {
-						echo $this->msg('Error resolving token: ' . curl_error($c));
+						$this->msg('Error resolving token: ' . curl_error($c));
 						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					} else {
-						echo $this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
+						$this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
 						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					}
@@ -183,7 +192,7 @@ class myuplink
 					$saveToken = file_put_contents($this->config['tokenPath'], json_encode($token));
 
 					if ($saveToken) {
-						echo $this->msg('Token saved to ' . $this->config['tokenPath']);
+						$this->msg('Token saved to ' . $this->config['tokenPath']);
 						$this->authorized == TRUE;
 					}
 
@@ -225,12 +234,7 @@ class myuplink
 		$c_answer = curl_exec($c);
 
 		//we should have a token here, debug output if needed
-		if ($this->config['debug'] == TRUE) {
-			echo '<pre> DEBUG: MyUplink.com answer: ';
-			var_dump(json_decode($c_answer));
-			echo '</pre>';
-		}
-
+		$this->debugMsg('DEBUG: MyUplink.com answer:', json_decode($c_answer));
 
 		//check answer and token parsing
 		$token = json_decode($c_answer, TRUE);
@@ -238,10 +242,10 @@ class myuplink
 
 			//we didnt received token :(
 			if (curl_error($c) != NULL) {
-				echo $this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). curl_error($c));
+				$this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 0);
 			} else {
-				echo $this->msg('Error resolving token: ' . $c_answer);
+				$this->msg('Error resolving token: ' . $c_answer);
 
 				if (isset($c)) {
 					curl_close($c);
@@ -256,7 +260,7 @@ class myuplink
 			//save token
 			$saveToken = file_put_contents($this->config['tokenPath'], json_encode($token));
 			if ($saveToken) {
-				echo $this->msg('Token saved to ' . $this->config['tokenPath']);
+				$this->msg('Token saved to ' . $this->config['tokenPath']);
 			}
 
 			//close connection
@@ -280,11 +284,11 @@ class myuplink
 		$clear = file_put_contents($this->config['tokenPath'], '');
 
 		if (!empty(file_get_contents($this->config['tokenPath']))) {
-			echo $this->msg('Can not clear token data, check if json folder has a write access');
+			$this->msg('Can not clear token data, check if json folder has a write access');
 			return FALSE;
 		} else if ($clear) {
 			if ($this->config['debug'] == TRUE) {
-				echo $this->msg('Token have been cleared.');
+				$this->msg('Token have been cleared.');
 			}
 			return TRUE;
 		}
@@ -324,13 +328,8 @@ class myuplink
 	{
 
 		$this->tokenStatus = json_decode(file_get_contents($this->config['tokenPath']), TRUE);
-
-		if ($this->config['debug'] == TRUE) {
-			echo '<pre> DEBUG: Token Status: ';
-			var_dump($this->tokenStatus);
-			echo '</pre>';
-		}
-
+        
+        $this->debugMsg('DEBUG: Token Status:', $this->tokenStatus);
 
 		if ($this->tokenStatus == NULL) {
 
@@ -383,7 +382,7 @@ class myuplink
 	   by default saves output to json file ($save = 1)
 	   */
 
-	public function getData(string $endpoint, $successHTTP = 200, int $save = 1)
+	public function getData(string $endpoint, int $successHTTP = 200, int $save = 1)
 	{
 
 		//define json output file name based on endpoint array key :)
@@ -399,12 +398,7 @@ class myuplink
 
 
 		//see raw answer 
-		if ($this->config['debug'] == TRUE)
-		{
-			echo '<pre> DEBUG [READ]: MyUplink.com answer: ';
-			var_dump(json_decode($c_answer));
-			echo '</pre>';
-		}
+		$this->debugMsg('DEBUG [READ]: MyUplink.com answer:', json_decode($c_answer));
 
 		$data = json_decode($c_answer, TRUE);
 		
@@ -415,10 +409,10 @@ class myuplink
 			//we didnt received answer
 			if (curl_error($c) != NULL)
 			{
-				echo $this->msg('Error resolving answer: ' . curl_error($c));
+				$this->msg('Error resolving answer: ' . curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
-				echo $this->msg('Error resolving answer: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
+				$this->msg('Error resolving answer: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
 
 				if (isset($c)) {
 					curl_close($c);
@@ -435,7 +429,7 @@ class myuplink
 
 				if ($savetoJson == TRUE) {
 
-					echo $this->msg('Data from GET [' . $endpoint . '] saved to ' . $this->config['jsonOutPath'] . $jsonName);
+					$this->msg('Data from GET [' . $endpoint . '] saved to ' . $this->config['jsonOutPath'] . $jsonName);
 				}
 
 			}
@@ -448,7 +442,7 @@ class myuplink
 			//returns TRUE if httpcontent == 204 (no data)
 			if($successHTTP == 204)
 			{
-			    echo $this->msg('Response from GET [' . $endpoint . '] is succesful! (204)' );
+			    $this->msg('Response from GET [' . $endpoint . '] is succesful! (204)' );
 			    return TRUE;
 			}
 			//returns data if httpcontent == 200

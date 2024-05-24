@@ -28,7 +28,6 @@ That is an index and an example at once. Can be used in a browser, or as an even
 
 //include autoloader for classes
 include('src/autoloader.php');
-spl_autoload_register('autoloader');
 
 
 //start main class and fetch config

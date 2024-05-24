@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.11.8
+Version: 0.13.9
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -19,6 +19,7 @@ class myuplinkGet extends myuplink
     public $pingAPI = FALSE;
     public $systemInfo = array();
     public $devicePoints = array();
+    public $aidMode = array();
     
 
     /*
@@ -30,14 +31,6 @@ class myuplinkGet extends myuplink
      $this->myuplink = $myuplink;
         //make first get from api and fetch main system info
         $this->system = $this->myuplink->getData($this->myuplink->endpoints['system']);
-        
-        /*
-        if ($this->myuplink->config['debug'] == TRUE) {
-			echo '<pre> DEBUG: Nibe Systems: ';
-			var_dump($this->system);
-			echo '</pre>';
-		}
-		*/
 		
 	    //we doesnt want to deep dive into multidimensional arrays or objects, lets flatten them
 		$this->systemInfo['numItems'] = intval($this->system['numItems']); //number of systems in myuplinkapi
@@ -50,15 +43,8 @@ class myuplinkGet extends myuplink
         $this->systemInfo['serialNumber'] = strval($this->system['systems'][0]['devices'][0]['product']['serialNumber']);
         $this->systemInfo['deviceName'] = strval($this->system['systems'][0]['devices'][0]['product']['name']); //device name
         
-          if ($this->myuplink->config['debug'] == TRUE)
-            {
-			echo '<pre> DEBUG: Nibe Systems: ';
-			var_dump($this->systemInfo);
-			echo '</pre>';
-            }
-		
-		
-        
+        $this->myuplink->debugMsg('DEBUG: Nibe Systems: ', $this->systemInfo);
+
         return $this->systemInfo;
         
         
@@ -89,6 +75,7 @@ class myuplinkGet extends myuplink
     public function getDevicePoints() 
     
     {
+        //TODO!
         //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
         //currently its just overwriting variables, need to find general solution :)
         
@@ -99,6 +86,30 @@ class myuplinkGet extends myuplink
         
         //return array
         return $this->devicePoints;
+        
+        
+    }
+    
+    
+    /*
+    Get additional heater status
+    save to json
+    returns int 1?0
+    */
+    public function getAidMode() 
+    
+    {
+        //TODO!
+        //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
+        //currently its just overwriting variables, need to find general solution :)
+        
+        $this->myuplink->endpoints['aidMode'] = '/v2/devices/'.$this->systemInfo['deviceId'].'/aidMode';
+        
+        //send request to API
+        $this->aidMode = $this->myuplink->getData($this->myuplink->endpoints['aidMode']);  
+        
+        //return int
+        return $this->aidMode;
         
         
     }
