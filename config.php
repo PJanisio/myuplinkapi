@@ -35,8 +35,7 @@ $endpoints =
 		    'all-alerts' => '/v2/systems/{systemId}/notifications',
 		    'all-alerts' => '/v2/systems/{systemId}/notifications',
 		    'ping' => '/v2/ping', //success when HTTPCODE == 204 
-		    'premium' => '/v2/systems/{systemId}/substrciptions'
-		    
+		    'premium' => '/v2/systems/{systemId}/substrciptions'		    
         	];
 
 ?>
