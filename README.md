@@ -19,7 +19,7 @@ Goal is to have easy, non dependent class which will be cron ready to fetch all 
 
 ### Example
 
-Current state: class can authorize, refresh authorization token and get raw data. First release will fetch all device parameters into jSon.
+Current state: class can authorize, refresh authorization token and save ALL device parameters to jSON. See [example output](https://pastebin.pl/view/raw/dbd66f2e)
 
 ```php
 /*

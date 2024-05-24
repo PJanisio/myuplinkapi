@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.13.9
+Version: 0.14.10
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -17,10 +17,10 @@ class myuplinkGet extends myuplink
     public $myuplink;
     public $system;
     public $pingAPI = FALSE;
-    public $systemInfo = array();
+    public $systemInfo; //object
     public $devicePoints = array();
-    public $aidMode = array();
-    
+    public $aidMode; //object
+    public $device;
 
     /*
     /Construct will get main system variables like systemID to fetch further data
@@ -94,7 +94,7 @@ class myuplinkGet extends myuplink
     /*
     Get additional heater status
     save to json
-    returns int 1?0
+    returns int 1?0 as an object
     */
     public function getAidMode() 
     
@@ -108,8 +108,32 @@ class myuplinkGet extends myuplink
         //send request to API
         $this->aidMode = $this->myuplink->getData($this->myuplink->endpoints['aidMode']);  
         
-        //return int
+        //return object
         return $this->aidMode;
+        
+        
+    }
+    
+    
+    /*
+    Get additional heater status
+    save to json
+    returns int 1?0 as an object
+    */
+    public function getDevice() 
+    
+    {
+        //TODO!
+        //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
+        //currently its just overwriting variables, need to find general solution :)
+        
+        $this->myuplink->endpoints['device'] = '/v2/devices/'.$this->systemInfo['deviceId'];
+        
+        //send request to API
+        $this->device = $this->myuplink->getData($this->myuplink->endpoints['device']);  
+        
+        //return object
+        return $this->device;
         
         
     }
