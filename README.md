@@ -32,6 +32,9 @@ $nibe = new myuplink('config.php'); //best practise - use absolute path
         $nibeGet = new myuplinkGet($nibe);
 
     
+        //check if API is online
+        $nibeGet->pingAPI();
+        
         //get all parameters from device and save to jSON
         $nibeGet->getDevicePoints();
     }

@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.8.7
+Version: 0.10.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,8 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.8.7';
+	const VERSION = '0.10.8';
+	
 	public $config = array();
 	private $authorized = FALSE;
 	public $endpoints = array();
@@ -171,7 +172,7 @@ class myuplink
 						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					} else {
-						echo $this->msg('Error resolving token: ' . $c_answer);
+						echo $this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
 						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					}
@@ -237,7 +238,7 @@ class myuplink
 
 			//we didnt received token :(
 			if (curl_error($c) != NULL) {
-				echo $this->msg('Error resolving token: ' . curl_error($c));
+				echo $this->msg('Error resolving token: '.curl_getinfo($c, CURLINFO_HTTP_CODE). curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 0);
 			} else {
 				echo $this->msg('Error resolving token: ' . $c_answer);
@@ -382,7 +383,7 @@ class myuplink
 	   by default saves output to json file ($save = 1)
 	   */
 
-	public function getData(string $endpoint, int $save = 1)
+	public function getData(string $endpoint, $successHTTP = 200, int $save = 1)
 	{
 
 		//define json output file name based on endpoint array key :)
@@ -398,21 +399,26 @@ class myuplink
 
 
 		//see raw answer 
-		if ($this->config['debug'] == TRUE) {
+		if ($this->config['debug'] == TRUE)
+		{
 			echo '<pre> DEBUG [READ]: MyUplink.com answer: ';
 			var_dump(json_decode($c_answer));
 			echo '</pre>';
 		}
 
 		$data = json_decode($c_answer, TRUE);
-		if ($data == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
+		
+		//204 is a special htttp response f.e for API ping
+		if ($data == NULL AND curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP)
+		{
 
 			//we didnt received answer
-			if (curl_error($c) != NULL) {
+			if (curl_error($c) != NULL)
+			{
 				echo $this->msg('Error resolving answer: ' . curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
-				echo $this->msg('Error resolving answer: ' . $c_answer);
+				echo $this->msg('Error resolving answer: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
 
 				if (isset($c)) {
 					curl_close($c);
@@ -439,8 +445,17 @@ class myuplink
 				curl_close($c);
 			}
 
-			//returns json data
-			return $data;
+			//returns TRUE if httpcontent == 204 (no data)
+			if($successHTTP == 204)
+			{
+			    echo $this->msg('Response from GET [' . $endpoint . '] is succesful! (204)' );
+			    return TRUE;
+			}
+			//returns data if httpcontent == 200
+			else if ($successHTTP == 200)
+			{
+			    return $data;
+		    }
 
 		}
 

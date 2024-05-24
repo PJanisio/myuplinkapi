@@ -20,11 +20,23 @@ $config =
 			
 //do not change	
 //array of possible endpoints in myUplink API  
-//https://api.myuplink.com/swagger/index.html
+//See description in swagger: https://api.myuplink.com/swagger/index.html
 $endpoints =
 	        [
 		    'system' => '/v2/systems/me',
-		    'devicePoints' => '/v3/devices/{deviceId}/points'
+		    'devicePoints' => '/v3/devices/{deviceId}/points',
+		    'aidMode' => '/v2/devices/{deviceId}/aidMode',
+		    'device' => '/v2/devices/{deviceId}',
+		    'smart-home-cat' => '/v2/devices/{deviceId}/smart-home-categories',
+		    'smart-home-zones' => '/v2/devices/{deviceId}/smart-home-zones',
+		    'smart-home-mode' => '/v2/systems/{systemId}/smart-home-mode',
+		    'firmware' => '/v2/devices/{deviceId}/firmware-info',
+		    'active-alerts' => '/v2/systems/{systemId}/notifications/active',
+		    'all-alerts' => '/v2/systems/{systemId}/notifications',
+		    'all-alerts' => '/v2/systems/{systemId}/notifications',
+		    'ping' => '/v2/ping', //success when HTTPCODE == 204 
+		    'premium' => '/v2/systems/{systemId}/substrciptions'
+		    
         	];
 
 ?>

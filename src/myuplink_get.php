@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.8.7
+Version: 0.10.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -10,11 +10,13 @@ github: https://github.com/PJanisio/myuplinkapi
 #GET data class
 
 
-class myuplinkGet extends myuplink {
+class myuplinkGet extends myuplink
+{
 
     //define main variables
     public $myuplink;
     public $system;
+    public $pingAPI = FALSE;
     public $systemInfo = array();
     public $devicePoints = array();
     
@@ -59,6 +61,21 @@ class myuplinkGet extends myuplink {
         
         return $this->systemInfo;
         
+        
+    }
+    
+
+     /*
+    Get function to check iof API is online
+    result TRUE when online
+    */
+    public function pingAPI() 
+    
+    {
+        //send request to API (204 response, w/o save to jSON)
+        $this->pingAPI = $this->myuplink->getData($this->myuplink->endpoints['ping'], 204, 0);  
+        //return
+        return $this->pingAPI;
         
     }
     
