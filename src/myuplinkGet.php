@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.14.10
+Version: 0.16.11
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -21,6 +21,10 @@ class myuplinkGet extends myuplink
     public $devicePoints = array();
     public $aidMode; //object
     public $device;
+    public $newEndpoints = array();
+    public $smartHomeCat;
+    public $smartHomeZones;
+    public $smartHomeMode;
 
     /*
     /Construct will get main system variables like systemID to fetch further data
@@ -44,9 +48,61 @@ class myuplinkGet extends myuplink
         $this->systemInfo['deviceName'] = strval($this->system['systems'][0]['devices'][0]['product']['name']); //device name
         
         $this->myuplink->debugMsg('DEBUG: Nibe Systems: ', $this->systemInfo);
+            //rewrite endpoints and take values from this function
+            $this->newEndpoints();
 
         return $this->systemInfo;
         
+        
+    }
+    
+    /*
+    Internal function to rewrite all ednpoints and add variables from _construct like systemId and deviceId
+    returns array of newEndpoints
+    */
+    protected function newEndpoints()
+    {
+        
+        $toChange = '';
+            $new = '';
+        
+        foreach ($this->myuplink->endpoints as $end => $value )
+        {
+            
+            preg_match_all('/{(.*?)}/', $value, $matches);
+            
+            //found curly bracket
+            if($matches[0])
+            {
+                
+                $toChange = $matches[1][0];
+                
+                    if($toChange == 'deviceId')
+                    {
+                      $changed = (string) $this->systemInfo['deviceId'];
+                      $new = str_replace('{'.$toChange.'}', $changed, $value);
+                      $this->newEndpoints[$end] = $new;
+                    }
+                    
+                     else if($toChange == 'systemId')
+                    {
+                      $changed = (string) $this->systemInfo['systemId'];
+                      $new = str_replace('{'.$toChange.'}', $changed, $value);
+                      $this->newEndpoints[$end] = $new;
+                    }
+                    
+                    
+            }
+            else 
+            {
+              $this->newEndpoints[$end] = $value;  
+                
+            }
+            
+        }
+        $this->myuplink->debugMsg('DEBUG: New Endpoints:', $this->newEndpoints);
+        
+        return $this->newEndpoints;
         
     }
     
@@ -59,7 +115,7 @@ class myuplinkGet extends myuplink
     
     {
         //send request to API (204 response, w/o save to jSON)
-        $this->pingAPI = $this->myuplink->getData($this->myuplink->endpoints['ping'], 204, 0);  
+        $this->pingAPI = $this->myuplink->getData($this->newEndpoints['ping'], 204, 0);  
         //return
         return $this->pingAPI;
         
@@ -75,15 +131,9 @@ class myuplinkGet extends myuplink
     public function getDevicePoints() 
     
     {
-        //TODO!
-        //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
-        //currently its just overwriting variables, need to find general solution :)
-        
-        $this->myuplink->endpoints['devicePoints'] = '/v3/devices/'.$this->systemInfo['deviceId'].'/points';
         
         //send request to API
-        $this->devicePoints = $this->myuplink->getData($this->myuplink->endpoints['devicePoints']);  
-        
+        $this->devicePoints = $this->myuplink->getData($this->newEndpoints['devicePoints']);  
         //return array
         return $this->devicePoints;
         
@@ -99,15 +149,9 @@ class myuplinkGet extends myuplink
     public function getAidMode() 
     
     {
-        //TODO!
-        //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
-        //currently its just overwriting variables, need to find general solution :)
-        
-        $this->myuplink->endpoints['aidMode'] = '/v2/devices/'.$this->systemInfo['deviceId'].'/aidMode';
-        
+
         //send request to API
-        $this->aidMode = $this->myuplink->getData($this->myuplink->endpoints['aidMode']);  
-        
+        $this->aidMode = $this->myuplink->getData($this->newEndpoints['aidMode']);  
         //return object
         return $this->aidMode;
         
@@ -116,24 +160,67 @@ class myuplinkGet extends myuplink
     
     
     /*
-    Get additional heater status
+    Get device status
     save to json
     returns int 1?0 as an object
     */
     public function getDevice() 
     
     {
-        //TODO!
-        //raw endpoints has to be changed with variables from systemInfo f.e {deviceId} == $this->systemInfo['deviceId']
-        //currently its just overwriting variables, need to find general solution :)
-        
-        $this->myuplink->endpoints['device'] = '/v2/devices/'.$this->systemInfo['deviceId'];
-        
         //send request to API
-        $this->device = $this->myuplink->getData($this->myuplink->endpoints['device']);  
-        
+        $this->device = $this->myuplink->getData($this->newEndpoints['device']);  
         //return object
         return $this->device;
+        
+        
+    }
+    
+    
+    /*
+    Get smart home categories
+    save to json
+    returns int 1?0 as an object
+    */
+    public function getSmartHomeCat() 
+    
+    {
+        //send request to API
+        $this->device = $this->myuplink->getData($this->newEndpoints['smart-home-cat']);  
+        //return object
+        return $this->smartHomeCat;
+        
+        
+    }
+    
+    /*
+    Get smart-home-zones
+    save to json
+    returns int 1?0 as an object
+    */
+    public function getSmartHomeZones() 
+    
+    {
+        //send request to API
+        $this->device = $this->myuplink->getData($this->newEndpoints['smart-home-zones']);  
+        //return object
+        return $this->smartHomeZones;
+        
+        
+    }
+    
+    
+    /*
+    Get smart-home-mode
+    save to json
+    returns int 1?0 as an object
+    */
+    public function getSmartHomeMode() 
+    
+    {
+        //send request to API
+        $this->device = $this->myuplink->getData($this->newEndpoints['smart-home-mode']);  
+        //return object
+        return $this->smartHomeMode;
         
         
     }

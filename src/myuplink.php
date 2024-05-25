@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.14.10
+Version: 0.16.11
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.14.10';
+	const VERSION = '0.16.11';
 	
 	public $config = array();
 	private $authorized = FALSE;
@@ -40,16 +40,8 @@ class myuplink
 		$this->config = $config;
 		//lets push configpath into array as additional variable
 		$this->config['configPath'] = $this->configPath;
-
-		if ($this->config['debug'] == TRUE) {
-
-			error_reporting(E_ALL);
-
-			echo '<pre> DEBUG: Config: ';
-			var_dump($this->config);
-			echo '</pre>';
-		}
-
+		
+		$this->debugMsg('DEBUG: Config: ', $this->config);
 		//returns config as array
 		return $this->config;
 
@@ -88,6 +80,7 @@ class myuplink
 
 	if ($this->config['debug'] == TRUE)
 	    {
+        error_reporting(E_ALL);
 		echo $this->debug = '<pre>'.$title;
 		var_dump($var);
 		echo '</pre>';
