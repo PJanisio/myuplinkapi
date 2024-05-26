@@ -9,7 +9,6 @@ $config =
 			'clientSecret' => 'xxxxxxx', //from dev.myuplink.com
 			'redirectUri' => 'https://xxxxxxxx', //your absolute path where index.php is stored
 			'jsonOutPath' => '/www/xxxxxxxx/json/', //your absolute path when you will store json files
-			'tokenPath' => '/www/xxxxxxxx/json/token.json', //absolute path for token
 			'scope' => 'READSYSTEM WRITESYSTEM offline_access', //dont change
 			'curl_http_version' =>    '\CURL_HTTP_VERSION_1_1', //dont change
 			'debug' => TRUE //TRUE = dump of information of received data

@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.16.11
+Version: 0.16.12
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.16.11';
+	const VERSION = '0.16.12';
 	
 	public $config = array();
 	private $authorized = FALSE;
@@ -182,10 +182,10 @@ class myuplink
 				} else {
 					//save token
 
-					$saveToken = file_put_contents($this->config['tokenPath'], json_encode($token));
+					$saveToken = file_put_contents($this->config['jsonOutPath'].'token.json', json_encode($token));
 
 					if ($saveToken) {
-						$this->msg('Token saved to ' . $this->config['tokenPath']);
+						$this->msg('Token saved to ' . $this->config['jsonOutPath'].'token.json');
 						$this->authorized == TRUE;
 					}
 
@@ -251,9 +251,9 @@ class myuplink
 
 		} else {
 			//save token
-			$saveToken = file_put_contents($this->config['tokenPath'], json_encode($token));
+			$saveToken = file_put_contents($this->config['jsonOutPath'].'token.json', json_encode($token));
 			if ($saveToken) {
-				$this->msg('Token saved to ' . $this->config['tokenPath']);
+				$this->msg('Token saved to ' . $this->config['jsonOutPath'].'token.json');
 			}
 
 			//close connection
@@ -274,9 +274,9 @@ class myuplink
 	private function clearToken()
 	{
 
-		$clear = file_put_contents($this->config['tokenPath'], '');
+		$clear = file_put_contents($this->config['jsonOutPath'].'token.json', '');
 
-		if (!empty(file_get_contents($this->config['tokenPath']))) {
+		if (!empty(file_get_contents($this->config['jsonOutPath'].'token.json'))) {
 			$this->msg('Can not clear token data, check if json folder has a write access');
 			return FALSE;
 		} else if ($clear) {
@@ -297,7 +297,7 @@ class myuplink
 	public function tokenExpiry()
 	{
 
-		$mod_time = filemtime($this->config['tokenPath']);
+		$mod_time = filemtime($this->config['jsonOutPath'].'token.json');
 		$t_left = intval($this->tokenStatus['expires_in'] - (time() - $mod_time));
 
 		$this->tokenLife = $t_left;
@@ -320,7 +320,7 @@ class myuplink
 	public function checkTokenStatus()
 	{
 
-		$this->tokenStatus = json_decode(file_get_contents($this->config['tokenPath']), TRUE);
+		$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'].'token.json'), TRUE);
         
         $this->debugMsg('DEBUG: Token Status:', $this->tokenStatus);
 
@@ -347,7 +347,7 @@ class myuplink
 					echo 'DEBUG: Token have been refreshed!';
 				}
 
-				$this->tokenStatus = json_decode(file_get_contents($this->config['tokenPath']), TRUE);
+				$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'].'token.json'), TRUE);
 
 				//update token expiry
 				$this->tokenExpiry();
@@ -379,7 +379,8 @@ class myuplink
 	{
 
 		//define json output file name based on endpoint array key :)
-		//that means you cant use this class before defining your endpoints, self restrictioning mode on L()
+		//that means you cant use this class before defining your endpoints, self restrictioning mode on ;)
+
 		$jsonName = array_search($endpoint, $this->endpoints) . '.json';
 
 

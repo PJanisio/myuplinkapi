@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.16.11
+Version: 0.16.12
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -60,7 +60,7 @@ class myuplinkGet extends myuplink
     Internal function to rewrite all ednpoints and add variables from _construct like systemId and deviceId
     returns array of newEndpoints
     */
-    protected function newEndpoints()
+    public function newEndpoints()
     {
         
         $toChange = '';
@@ -101,6 +101,9 @@ class myuplinkGet extends myuplink
             
         }
         $this->myuplink->debugMsg('DEBUG: New Endpoints:', $this->newEndpoints);
+        
+        //overwrite existing endpoints to a new one
+        $this->myuplink->endpoints = $this->newEndpoints;
         
         return $this->newEndpoints;
         
