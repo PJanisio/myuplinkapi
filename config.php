@@ -7,11 +7,11 @@ $config =
 	        [
 			'clientID' => 'xxxxxx', //from dev.myuplink.com
 			'clientSecret' => 'xxxxxxx', //from dev.myuplink.com
-			'redirectUri' => 'https://xxxxxxxx', //your absolute path where index.php is stored
-			'jsonOutPath' => '/www/xxxxxxxx/json/', //your absolute path when you will store json files
+			'redirectUri' => 'https://xxxxxxxx', // from dev.myuplink.com - your absolute path where index.php is stored
+			'jsonOutPath' => '/www/xxxxxxxx/json/', //your absolute path when you will store json files as well as token.json
 			'scope' => 'READSYSTEM WRITESYSTEM offline_access', //dont change
 			'curl_http_version' =>    '\CURL_HTTP_VERSION_1_1', //dont change
-			'debug' => TRUE //TRUE = dump of information of received data
+			'debug' => FALSE //TRUE = var_dump of inputs and outputs, set to TRUE if your app is not working
         	];
         	
 
@@ -34,7 +34,7 @@ $endpoints =
 		    'all-alerts' => '/v2/systems/{systemId}/notifications',
 		    'all-alerts' => '/v2/systems/{systemId}/notifications',
 		    'ping' => '/v2/ping', //success when HTTPCODE == 204 
-		    'premium' => '/v2/systems/{systemId}/substrciptions'		    
+		    'premium' => '/v2/systems/{systemId}/subscriptions' //will return 204 if subscription is not available	    
         	];
 
 ?>

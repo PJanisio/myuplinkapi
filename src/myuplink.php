@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 0.16.12
+Version: 1.0.0
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '0.16.12';
+	const VERSION = '1.0.0';
 	
 	public $config = array();
 	private $authorized = FALSE;
@@ -333,9 +333,7 @@ class myuplink
 		//lets check if our token didnt expired
 		else if ($this->tokenExpiry() == 'Token expired') {
 			//expired
-			if ($this->config['debug'] == TRUE) {
-				echo 'DEBUG: Token have expired. Refreshing token...';
-			}
+                $this->msg('Token have expired. Refreshing token...');
 
 			//clear old token
 			$this->clearToken();
@@ -344,7 +342,7 @@ class myuplink
 			if ($this->refreshToken() == TRUE) {
 
 				if ($this->config['debug'] == TRUE) {
-					echo 'DEBUG: Token have been refreshed!';
+					$this->msg('Token succesfully refreshed!');
 				}
 
 				$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'].'token.json'), TRUE);
@@ -403,10 +401,10 @@ class myuplink
 			//we didnt received answer
 			if (curl_error($c) != NULL)
 			{
-				$this->msg('Error resolving answer: ' . curl_error($c));
+				$this->msg('Error resolving answer from GET [' . $endpoint . ']: ' . curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
-				$this->msg('Error resolving answer: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
+				$this->msg('Empty answer from GET [' . $endpoint . ']: '.curl_getinfo($c, CURLINFO_HTTP_CODE). $c_answer);
 
 				if (isset($c)) {
 					curl_close($c);
