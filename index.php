@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.0.0
+Version: 1.0.1
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -28,8 +28,3 @@ $nibe = new myuplink(__DIR__.'/config.php');
         //get all parameters from device and save to jSON
         $nibeGet->getAll();
     }
-    
-    
-    
-    
-?>

@@ -41,6 +41,7 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 ## Example
 
 Below example is exactly the content of **index.php**
+
 **Outcome**: will fetch all possible data and save into jSON (location in config.php -> 'jsonOutPath')
 
 ```php

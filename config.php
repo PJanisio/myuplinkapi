@@ -32,9 +32,7 @@ $endpoints =
 		    'firmware' => '/v2/devices/{deviceId}/firmware-info',
 		    'active-alerts' => '/v2/systems/{systemId}/notifications/active',
 		    'all-alerts' => '/v2/systems/{systemId}/notifications',
-		    'all-alerts' => '/v2/systems/{systemId}/notifications',
 		    'ping' => '/v2/ping', //success when HTTPCODE == 204 
 		    'premium' => '/v2/systems/{systemId}/subscriptions' //will return 204 if subscription is not available	    
         	];
 
-?>

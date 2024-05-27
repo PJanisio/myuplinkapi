@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.0.0
+Version: 1.0.1
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -151,6 +151,22 @@ class myuplinkGet extends myuplink
     }
     
     
+    /*
+    Get function to receive main system information (as in __Construct)
+    save to json
+    returns array of parameters
+    */
+    public function getSystemInfo() 
+    
+    {
+        
+        //send request to API
+        $this->systemInfo = $this->myuplink->getData($this->newEndpoints['system']);  
+        //return array
+        return $this->systemInfo;
+        
+        
+    }
     
     /*
     Get function to receive all parameters from device
@@ -353,5 +369,3 @@ class myuplinkGet extends myuplink
 
 }  //end of class
 
-
-?>
