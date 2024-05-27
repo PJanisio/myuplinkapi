@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.1.3
+Version: 1.1.4
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -366,7 +366,7 @@ class myuplinkGet extends myuplink
         $this->all[] = $this->getAllAlerts();
         $this->all[] = $this->getPremium();
 
-        //return object
+        //return array
         return $this->all;
         
         

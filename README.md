@@ -37,12 +37,12 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 <sub>* redirectUri is a web directory on which you pasted **myuplink class** - please make sure it is the same web URL as you saved in your Myuplink app.</sub>
 
 5. Save config.php and open browser with **redirectUri** address. And see example below.
+6. *Optional* - change debug to TRUE if you want to get detailed api responses.
 
 ## Example
 
 Below example is exactly the content of **index.php**
-
-**Outcome**: will fetch all possible data and save into jSON (location in config.php -> 'jsonOutPath')
+**Outcome**: will fetch all device data and save into jSON (location in config.php -> 'jsonOutPath')
 
 ```php
 //include autoloader for classes
@@ -56,8 +56,12 @@ $nibe = new myuplink(__DIR__.'/config.php');
     {
         //if authorized switching to class which get data
         $nibeGet = new myuplinkGet($nibe);
+        
         //get all parameters from device and save to jSON
-        $nibeGet->getAll();
+        $nibeGet->getDevicePoints();
+        
+        //get all possible endpoints, put to array and save to jSON 
+        //$nibeGet->getAll();
     }
   
 ```

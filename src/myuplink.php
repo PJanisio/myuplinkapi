@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.1.3
+Version: 1.1.4
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.1.3';
+	const VERSION = '1.1.4';
 	
 	public string $lastVersion = '';
 	public $config = array();
@@ -111,7 +111,7 @@ class myuplink
                     
                     $this->lastVersion = strval(substr($jsonObj->tag_name, 2));
                     
-                   if(version_compare(constant('myuplink::VERSION'), $this->lastVersion, '<=' ))
+                   if(version_compare(constant('myuplink::VERSION'), $this->lastVersion, '<' ))
                     {
                       
                         return $this->lastVersion;
