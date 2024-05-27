@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.0.1
+Version: 1.1.3
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -68,17 +68,24 @@ class myuplinkGet extends myuplink
     Internal function to display connection status
     returns string
     */
-    protected function landingPage()
+    protected function landingPage(): void
     
     {
         $this->myuplink->msg('Hi, <b>'.$this->systemInfo['name'].'</b><br>
         Your SystemId: <b>'.$this->systemInfo['systemId'].'</b><br>
         Your DeviceId: <b>'.$this->systemInfo['deviceId'].'</b><br>
         Your Device S/N: <b>'.$this->systemInfo['serialNumber'].'</b><br>
-        You firmware version: <b>'.$this->systemInfo['currentFwVersion'].'</b><br>
-        Myuplink class version: <b>'.constant('myuplink::VERSION').'</b>
-        ');
+        You firmware version: <b>'.$this->systemInfo['currentFwVersion'].'</b><br>');
         
+        if($this->myuplink->checkUpdate() !== NULL) 
+        {
+            $this->myuplink->msg('Myuplink class version: <b>'.constant('myuplink::VERSION').'</b> <a href="https://github.com/PJanisio/myuplinkapi/releases/tag/v.'.$this->myuplink->lastVersion.'"> Update available ('.$this->myuplink->lastVersion.')</a>');
+        }
+        else 
+        {
+          $this->myuplink->msg('Myuplink class version: <b>'.constant('myuplink::VERSION').'</b> (Cool! You are up to date.)');
+            
+        }
         
     }
     
@@ -347,6 +354,7 @@ class myuplinkGet extends myuplink
     
     {
         //send requests to API
+        $this->all[] = $this->getSystemInfo();
         $this->all[] = $this->pingAPI();
         $this->all[] = $this->getDevicePoints();
         $this->all[] = $this->getDevice();

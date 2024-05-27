@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.0.1
+Version: 1.1.3
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,8 +14,9 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.0.1';
+	const VERSION = '1.1.3';
 	
+	public string $lastVersion = '';
 	public $config = array();
 	private $authorized = FALSE;
 	public $endpoints = array();
@@ -26,6 +27,7 @@ class myuplink
 	public int $tokenLife = 0;
 	protected string $msg = '';
 	protected string $debug = '';
+	
 
 	/*
 	   Prepare configuration variables
@@ -56,18 +58,17 @@ class myuplink
 
 		return header('Refresh:' . $delay . '; url=' . $uri);
 	}
+	
 
 	/*
 	   Internal function to format myuplink class messages
 	   */
-	protected function msg(string $text)
+	protected function msg(string $text): void
 	{
 
 		echo $this->msg = '<fieldset><legend><b>System message</b></legend>
 					' . $text . '
 				</fieldset>';
-
-		return NULL;
 
 	}
 	
@@ -75,7 +76,7 @@ class myuplink
 	   Internal function to send debug <pre> messages
 	   return var_dump of variable
 	   */
-	protected function debugMsg(string $title, $var)
+	protected function debugMsg(string $title, $var): void
 	{
 
 	if ($this->config['debug'] == TRUE)
@@ -86,7 +87,42 @@ class myuplink
 		echo '</pre>';
 		}
 
-        return NULL;
+	}
+	
+	
+	/*
+	   Internal function to check if there are newer RELEASED version of this class
+	   return string with most updated version
+	   */
+	public function checkUpdate()
+	{
+
+	$url = 'https://api.github.com/repos/PJanisio/myuplinkapi/releases/latest';
+        $opts = [
+        'http' => [
+                'method' => 'GET',
+                'header' => ['User-Agent: myuplink']
+                ]
+                ];
+
+            $ctx = stream_context_create($opts);
+                $json_handler = file_get_contents( $url, 0, $ctx );
+                    $jsonObj = json_decode($json_handler);
+                    
+                    $this->lastVersion = strval(substr($jsonObj->tag_name, 2));
+                    
+                   if(version_compare(constant('myuplink::VERSION'), $this->lastVersion, '<=' ))
+                    {
+                      
+                        return $this->lastVersion;
+                    }
+                        else 
+                        {
+                            //no need to update
+                            return NULL;
+                        }
+                    
+            
 	}
 
 
@@ -185,21 +221,22 @@ class myuplink
 					$saveToken = file_put_contents($this->config['jsonOutPath'].'token.json', json_encode($token));
 
 					if ($saveToken) {
-						$this->msg('Token saved to ' . $this->config['jsonOutPath'].'token.json');
+						$this->msg('Token saved to ' . $this->config['jsonOutPath'].'token.json. Reloading page. Please wait...');
 						$this->authorized == TRUE;
 					}
 
-					if (isset($c)) {
+					if (isset($c))
+					{
 						curl_close($c);
-
+					}      
 						$this->redirectMe($this->config['redirectUri'], 0);
-						return TRUE;
-					}
-
+						//we need to return false and reload to check again token status
+						return FALSE;
+					
 
 				}
 			}
-
+			
 		}
 
 
@@ -320,7 +357,7 @@ class myuplink
 	public function checkTokenStatus()
 	{
 
-		$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'].'token.json'), TRUE);
+		$this->tokenStatus = json_decode(@file_get_contents($this->config['jsonOutPath'].'token.json'), TRUE);
         
         $this->debugMsg('DEBUG: Token Status:', $this->tokenStatus);
 
