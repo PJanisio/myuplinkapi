@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.5
+Version: 1.2.6
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -301,6 +301,8 @@ class myuplinkGet extends myuplink
     public function getAllAlerts()
     {
         //send request to API
+        //paging not supported currently
+        
         $this->allAlerts = $this->myuplink->getData($this->newEndpoints['all-alerts']);
         //return object
         return $this->allAlerts;
@@ -311,8 +313,8 @@ class myuplinkGet extends myuplink
     /*
     Get information about premium subscription
     save to json
-    returns either 204 == no subscription
-    returns expire time if valid subscription
+    returns FALSE when no subscription is valid
+    returns object of array with expire time if valid subscription
     */
     public function getPremium()
     {
@@ -326,28 +328,38 @@ class myuplinkGet extends myuplink
 
 
     /*
-    Get all data which can be get :) all methods together
+    Get all data which can be gotten :) all methods together at once
     save to json
-    returns array of all parameters and save to /json
+    returns array of all parameters with key name = endpoint in config.php
     */
     public function getAll()
     {
         //send requests to API
-        $this->all[] = $this->getSystemInfo();
-        $this->all[] = $this->pingAPI();
-        $this->all[] = $this->getDevicePoints();
-        $this->all[] = $this->getDevice();
-        $this->all[] = $this->getSmartHomeMode();
-        $this->all[] = $this->getSmartHomeCat();
-        $this->all[] = $this->getSmartHomeZones();
-        $this->all[] = $this->getFirmware();
-        $this->all[] = $this->getActiveAlerts();
-        $this->all[] = $this->getAllAlerts();
-        $this->all[] = $this->getPremium();
+        $this->all['system'] = $this->getSystemInfo();
+        $this->all['ping'] = $this->pingAPI();
+        $this->all['devicePoints'] = $this->getDevicePoints();
+        $this->all['device'] = $this->getDevice();
+        $this->all['smart-home-mode'] = $this->getSmartHomeMode();
+        $this->all['smart-home-cat'] = $this->getSmartHomeCat();
+        $this->all['smart-home-zones'] = $this->getSmartHomeZones();
+        $this->all['firmware'] = $this->getFirmware();
+        $this->all['activeAlerts'] = $this->getActiveAlerts();
+        $this->all['allAlerts'] = $this->getAllAlerts();
+        $this->all['premium'] = $this->getPremium();
 
-        //return array
+        
+        //return array of results
         return $this->all;
 
+        /*
+        getAll() function will output a mutlidimensional array
+        it makes very easy to get value of desired parameter
+        example below of current firmware version
+
+        $this->all['firmware']['currentFwVersion'];
+        
+        use var_dump($this->all) to help yourself :)
+        */
 
     }
 

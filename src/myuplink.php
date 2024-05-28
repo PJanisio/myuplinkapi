@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.5
+Version: 1.2.6
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.2.5';
+	const VERSION = '1.2.6';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -35,6 +35,12 @@ class myuplink
 		   */
 	public function __construct(string $configPath)
 	{
+	    
+        if (version_compare(PHP_VERSION, '7.4.0', '<'))
+        {
+            $this->msg('Your php version (' . PHP_VERSION . ') is outdated. Class requires at least PHP 7.4+');
+            exit();
+        }
 
 		//load config variables
 		$this->configPath = $configPath;
@@ -85,7 +91,7 @@ class myuplink
 
 			echo $this->msg = '<fieldset><legend> [' . date("Y-m-d H:i:s") . '] <b>System message</b></legend>
 					' . $text . '
-				            </fieldset>';
+				            </fieldset><br>';
 
 		}
 
@@ -384,7 +390,7 @@ class myuplink
 		//lets check if our token didnt expired
 		else if ($this->tokenExpiry() == 'Token expired') {
 			//expired
-			$this->msg('Token have expired. Refreshing token...');
+			$this->msg('Token have expired. Please wait, token will refresh...');
 
 			//clear old token
 			$this->clearToken();
