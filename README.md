@@ -77,7 +77,8 @@ if($nibe->authorizeAPI() == TRUE)
 $nibeGet = new  myuplinkGet($nibe);
 
 //get all possible endpoints, put to array and save to jSON
-$nibeGet->getAll();
+        //$data is an array with key = endpoint key
+        $data = $nibeGet->getALL();
 
 }
 

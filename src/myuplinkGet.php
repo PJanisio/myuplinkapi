@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.6
+Version: 1.2.7
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi

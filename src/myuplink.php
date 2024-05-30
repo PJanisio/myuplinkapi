@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.6
+Version: 1.2.7
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.2.6';
+	const VERSION = '1.2.7';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -453,6 +453,17 @@ class myuplink
 
 		//204 is a special htttp response f.e for API ping
 		if ($data == NULL and curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
+		    
+		    if(curl_getinfo($c, CURLINFO_HTTP_CODE) == 504)
+		    
+		    {
+		       //gateway error we have timeout from api, that could mean we have lost authorization status
+		       //to be checked!
+		       
+		       $this->clearToken();
+		        $this->redirectMe($this->config['redirectUri'], 0);
+		        return FALSE;
+		    }
 
 			//we didnt received answer
 			if (curl_error($c) != NULL) {
