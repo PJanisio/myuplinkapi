@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.7
+Version: 1.2.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -44,16 +44,14 @@ class myuplinkGet extends myuplink
 
         $this->myuplink = $myuplink;
         $this->getSystemInfo();
+        //rewrite endpoints and take values from this function
+        $this->newEndpoints();
 
-
-        if (!isset($_SERVER['SHELL'])) {
+        if (php_sapi_name() != 'cli') {
             $this->landingPage();
         }
 
         $this->myuplink->debugMsg('DEBUG: Nibe Systems: ', $this->systemInfo);
-        //rewrite endpoints and take values from this function
-        $this->newEndpoints();
-
     }
 
     /*
@@ -62,19 +60,32 @@ class myuplinkGet extends myuplink
     */
     protected function landingPage(): void
     {
-        $this->myuplink->msg('Hi, <b>' . $this->systemInfo['name'] . '</b><br>
+        $FW = $this->getFirmware();
+
+        if (version_compare($this->systemInfo['currentFwVersion'], $FW['desiredFwVersion'], '<')) {
+            $FW_text = 'Your firmware version: <b>' . $this->systemInfo['currentFwVersion'] . '</b> is not up to date! Upgrade your device. Newest firmware version: <b>' . $FW['desiredFwVersion'] . '</b>';
+        } else {
+            $FW_text = 'Your firmware version: <b>' . $this->systemInfo['currentFwVersion'] . '</b> is up to date!';
+        }
+
+
+        if ($this->myuplink->checkUpdate() !== NULL) {
+            $classFW = 'Myuplink class version: <b>' . constant('myuplink::VERSION') . '</b> <a href="https://github.com/PJanisio/myuplinkapi/releases/tag/v.' . $this->myuplink->lastVersion . '"> Update available (' . $this->myuplink->lastVersion . ')</a>';
+        } else {
+
+            $classFW = 'Myuplink class version: <b>' . constant('myuplink::VERSION') . '</b> (Cool! You are up to date.)';
+        }
+
+
+
+        $this->myuplink->msg(
+            'Hi, <b>' . $this->systemInfo['name'] . '</b><br>
         Your SystemId: <b>' . $this->systemInfo['systemId'] . '</b><br>
         Your DeviceId: <b>' . $this->systemInfo['deviceId'] . '</b><br>
         Your Device S/N: <b>' . $this->systemInfo['serialNumber'] . '</b><br>
-        You firmware version: <b>' . $this->systemInfo['currentFwVersion'] . '</b><br>');
-
-        if ($this->myuplink->checkUpdate() !== NULL) {
-            $this->myuplink->msg('Myuplink class version: <b>' . constant('myuplink::VERSION') . '</b> <a href="https://github.com/PJanisio/myuplinkapi/releases/tag/v.' . $this->myuplink->lastVersion . '"> Update available (' . $this->myuplink->lastVersion . ')</a>');
-        } else {
-            $this->myuplink->msg('Myuplink class version: <b>' . constant('myuplink::VERSION') . '</b> (Cool! You are up to date.)');
-
-        }
-
+        ' . $FW_text . '<br>'
+                . $classFW . '<br>'
+        );
     }
 
     /*
@@ -105,13 +116,9 @@ class myuplinkGet extends myuplink
                     $new = str_replace('{' . $toChange . '}', $changed, $value);
                     $this->newEndpoints[$end] = $new;
                 }
-
-
             } else {
                 $this->newEndpoints[$end] = $value;
-
             }
-
         }
         $this->myuplink->debugMsg('DEBUG: New Endpoints:', $this->newEndpoints);
 
@@ -119,7 +126,6 @@ class myuplinkGet extends myuplink
         $this->myuplink->endpoints = $this->newEndpoints;
 
         return $this->newEndpoints;
-
     }
 
 
@@ -133,7 +139,6 @@ class myuplinkGet extends myuplink
         $this->pingAPI = $this->myuplink->getData($this->newEndpoints['ping'], 204, 0);
         //return
         return $this->pingAPI;
-
     }
 
 
@@ -161,8 +166,6 @@ class myuplinkGet extends myuplink
 
         //return array
         return $this->systemInfo;
-
-
     }
 
     /*
@@ -177,8 +180,6 @@ class myuplinkGet extends myuplink
         $this->devicePoints = $this->myuplink->getData($this->newEndpoints['devicePoints']);
         //return array
         return $this->devicePoints;
-
-
     }
 
 
@@ -194,8 +195,6 @@ class myuplinkGet extends myuplink
         $this->aidMode = $this->myuplink->getData($this->newEndpoints['aidMode']);
         //return object
         return $this->aidMode;
-
-
     }
 
 
@@ -210,8 +209,6 @@ class myuplinkGet extends myuplink
         $this->device = $this->myuplink->getData($this->newEndpoints['device']);
         //return object
         return $this->device;
-
-
     }
 
 
@@ -226,8 +223,6 @@ class myuplinkGet extends myuplink
         $this->smartHomeCat = $this->myuplink->getData($this->newEndpoints['smart-home-cat']);
         //return object
         return $this->smartHomeCat;
-
-
     }
 
     /*
@@ -241,8 +236,6 @@ class myuplinkGet extends myuplink
         $this->smartHomeZones = $this->myuplink->getData($this->newEndpoints['smart-home-zones']);
         //return object
         return $this->smartHomeZones;
-
-
     }
 
 
@@ -257,8 +250,6 @@ class myuplinkGet extends myuplink
         $this->smartHomeMode = $this->myuplink->getData($this->newEndpoints['smart-home-mode']);
         //return object
         return $this->smartHomeMode;
-
-
     }
 
 
@@ -273,8 +264,6 @@ class myuplinkGet extends myuplink
         $this->firmware = $this->myuplink->getData($this->newEndpoints['firmware']);
         //return object
         return $this->firmware;
-
-
     }
 
     /*
@@ -288,8 +277,6 @@ class myuplinkGet extends myuplink
         $this->activeAlerts = $this->myuplink->getData($this->newEndpoints['active-alerts']);
         //return object
         return $this->activeAlerts;
-
-
     }
 
 
@@ -302,12 +289,10 @@ class myuplinkGet extends myuplink
     {
         //send request to API
         //paging not supported currently
-        
+
         $this->allAlerts = $this->myuplink->getData($this->newEndpoints['all-alerts']);
         //return object
         return $this->allAlerts;
-
-
     }
 
     /*
@@ -322,8 +307,6 @@ class myuplinkGet extends myuplink
         $this->premium = $this->myuplink->getData($this->newEndpoints['premium']);
         //return object
         return $this->premium;
-
-
     }
 
 
@@ -347,7 +330,7 @@ class myuplinkGet extends myuplink
         $this->all['allAlerts'] = $this->getAllAlerts();
         $this->all['premium'] = $this->getPremium();
 
-        
+
         //return array of results
         return $this->all;
 
@@ -360,11 +343,5 @@ class myuplinkGet extends myuplink
         
         use var_dump($this->all) to help yourself :)
         */
-
     }
-
-
-
-
 }  //end of class
-

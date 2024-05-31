@@ -63,23 +63,19 @@ More examples you can check at [wiki pages](https://github.com/PJanisio/myuplink
 ```php
 
 //include autoloader for classes
-include(__DIR__.'/src/autoloader.php');
+include(__DIR__ . '/src/autoloader.php');
 
 //start main class and fetch config
-$nibe = new  myuplink(__DIR__.'/config.php');
+$nibe = new myuplink(__DIR__ . '/config.php');
 
 //authorization, getting token and its status
-if($nibe->authorizeAPI() == TRUE)
+if ($nibe->authorizeAPI() == TRUE) {
+    //if authorized switching to class which get data
+    $nibeGet = new myuplinkGet($nibe);
 
-{
-
-//if authorized switching to class which get data
-$nibeGet = new  myuplinkGet($nibe);
-
-//get all possible endpoints, put to array and save to jSON
-        //$data is an array with key = endpoint key
-        $data = $nibeGet->getALL();
-
+    //get all possible endpoints, put to array and save to jSON
+    //$data is an array with key = endpoint key
+    $data = $nibeGet->getALL();
 }
 
 ```

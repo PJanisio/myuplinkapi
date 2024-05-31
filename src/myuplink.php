@@ -1,7 +1,7 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.7
+Version: 1.2.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +14,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.2.7';
+	const VERSION = '1.2.8';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -35,23 +35,21 @@ class myuplink
 		   */
 	public function __construct(string $configPath)
 	{
-	    
-        if (version_compare(PHP_VERSION, '7.4.0', '<'))
-        {
-            $this->msg('Your php version (' . PHP_VERSION . ') is outdated. Class requires at least PHP 7.4+');
-            exit();
-        }
+
+		if (version_compare(PHP_VERSION, '7.4.0', '<')) {
+			$this->msg('Your php version (' . PHP_VERSION . ') is outdated. Class requires at least PHP 7.4+');
+			exit();
+		}
 
 		//load config variables
 		$this->configPath = $configPath;
-		include ($this->configPath);
+		include($this->configPath);
 		$this->config = $config;
 		//lets push configpath into array as additional variable
 		$this->config['configPath'] = $this->configPath;
 		$this->debugMsg('DEBUG: Config: ', $this->config);
 		//returns config as array
 		return $this->config;
-
 	}
 
 	/*
@@ -73,9 +71,9 @@ class myuplink
 	{
 
 		//if running from terminal or cron
-		if (isset($_SERVER['SHELL'])) {
+		if (php_sapi_name() == 'cli') {
 
-			$eol = isset($_SERVER['SHELL']) ? PHP_EOL : "<br />";
+			$eol = (php_sapi_name() == 'cli') ? PHP_EOL : "<br />";
 
 			$this->msg .= '*=======================================================================================================================================*' . $eol;
 			$this->msg .= '[' . date("Y-m-d H:i:s") . '] ' . $text . $eol;
@@ -84,7 +82,6 @@ class myuplink
 			echo $this->msg . $eol;
 
 			$this->msg = '';
-
 		}
 		//running from browser
 		else {
@@ -92,9 +89,7 @@ class myuplink
 			echo $this->msg = '<fieldset><legend> [' . date("Y-m-d H:i:s") . '] <b>System message</b></legend>
 					' . $text . '
 				            </fieldset><br>';
-
 		}
-
 	}
 
 	/*
@@ -110,7 +105,6 @@ class myuplink
 			var_dump($var);
 			echo '</pre>';
 		}
-
 	}
 
 
@@ -142,8 +136,6 @@ class myuplink
 			//no need to update
 			return NULL;
 		}
-
-
 	}
 
 
@@ -153,7 +145,7 @@ class myuplink
 	protected function loadEndpoints()
 	{
 
-		include ($this->config['configPath']);
+		include($this->config['configPath']);
 		//load endpoints
 		$this->endpoints = $endpoints;
 
@@ -194,7 +186,6 @@ class myuplink
 			//we are already authorized!
 			$this->msg('You are authorized! Token will expire in ' . $this->tokenLife . ' seconds.');
 			return TRUE;
-
 		} else if (!isset($_GET['code']) and $this->authorized == FALSE) {
 
 			$this->msg('You are not authorized. Please follow this <a href="' . $this->authURL() . '">LINK</a>');
@@ -235,7 +226,6 @@ class myuplink
 						$this->redirectMe($this->config['redirectUri'], 3);
 						return FALSE;
 					}
-
 				} else {
 					//save token
 
@@ -252,14 +242,9 @@ class myuplink
 					$this->redirectMe($this->config['redirectUri'], 0);
 					//we need to return false and reload to check again token status
 					return FALSE;
-
-
 				}
 			}
-
 		}
-
-
 	}
 
 
@@ -305,7 +290,6 @@ class myuplink
 
 				return FALSE;
 			}
-
 		} else {
 			//save token
 			$saveToken = file_put_contents($this->config['jsonOutPath'] . 'token.json', json_encode($token));
@@ -320,7 +304,6 @@ class myuplink
 
 			return TRUE;
 		}
-
 	}
 
 
@@ -342,7 +325,6 @@ class myuplink
 			}
 			return TRUE;
 		}
-
 	}
 
 
@@ -366,7 +348,6 @@ class myuplink
 		} else {
 			return $this->tokenLife; //seconds
 		}
-
 	}
 
 	/*
@@ -411,15 +392,12 @@ class myuplink
 
 				return $this->tokenStatus;
 			}
-
 		} else if ($this->tokenStatus != NULL and $this->tokenExpiry() != 'Token expired') {
 			//returning array
 			return $this->tokenStatus;
-
 		} else {
 			$this->clearToken();
 			return FALSE;
-
 		}
 	}
 
@@ -453,17 +431,15 @@ class myuplink
 
 		//204 is a special htttp response f.e for API ping
 		if ($data == NULL and curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
-		    
-		    if(curl_getinfo($c, CURLINFO_HTTP_CODE) == 504)
-		    
-		    {
-		       //gateway error we have timeout from api, that could mean we have lost authorization status
-		       //to be checked!
-		       
-		       $this->clearToken();
-		        $this->redirectMe($this->config['redirectUri'], 0);
-		        return FALSE;
-		    }
+
+			if (curl_getinfo($c, CURLINFO_HTTP_CODE) == 504) {
+				//gateway error we have timeout from api, that could mean we have lost authorization status
+				//to be checked!
+
+				$this->clearToken();
+				$this->redirectMe($this->config['redirectUri'], 0);
+				return FALSE;
+			}
 
 			//we didnt received answer
 			if (curl_error($c) != NULL) {
@@ -479,7 +455,6 @@ class myuplink
 
 				return FALSE;
 			}
-
 		} else {
 
 			if ($save == 1) {
@@ -489,7 +464,6 @@ class myuplink
 
 					$this->msg('Data from GET [' . $endpoint . '] saved to ' . $this->config['jsonOutPath'] . $jsonName);
 				}
-
 			}
 
 			//close connection
@@ -506,12 +480,6 @@ class myuplink
 			else if ($successHTTP == 200) {
 				return $data;
 			}
-
 		}
-
-
 	}
-
-
-
 } //end of class
