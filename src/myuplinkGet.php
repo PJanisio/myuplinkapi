@@ -1,7 +1,6 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -29,6 +28,11 @@ class myuplinkGet extends myuplink
     public $allAlerts;
     public $premium;
     public $all = array();
+    //legacy
+    public $devicePointsV2;
+    public $serviceInfoCategories;
+    public $systemById;
+
 
     //flatten array ready to read
     public $systemInfo = array();
@@ -329,6 +333,10 @@ class myuplinkGet extends myuplink
         $this->all['activeAlerts'] = $this->getActiveAlerts();
         $this->all['allAlerts'] = $this->getAllAlerts();
         $this->all['premium'] = $this->getPremium();
+        //legacy methods
+        $this->all['devicePointsV2'] = $this->getDevicePointsV2();
+        $this->all['serviceInfoCategories'] = $this->getServiceInfoCategories();
+        $this->all['systemById'] = $this->getSystemById();
 
 
         //return array of results
@@ -344,4 +352,34 @@ class myuplinkGet extends myuplink
         use var_dump($this->all) to help yourself :)
         */
     }
+
+    /*
+    Get device points from V2 API (alternative to V3)
+    returns object of array
+    */
+        public function getDevicePointsV2()
+        {
+            $this->devicePointsV2 = $this->myuplink->getData($this->newEndpoints['devicePointsV2']);
+            return $this->devicePointsV2;
+        }
+
+    /*
+    Get service info categories for diagnostic purposes
+    returns object of array
+    */
+        public function getServiceInfoCategories()
+        {
+            $this->serviceInfoCategories = $this->myuplink->getData($this->newEndpoints['serviceInfoCategories']);
+            return $this->serviceInfoCategories;
+        }
+
+    /*
+    Get system specifics by System ID
+    returns object of array
+    */
+        public function getSystemById()
+        {
+            $this->systemById = $this->myuplink->getData($this->newEndpoints['systemById']);
+            return $this->systemById;
+        }
 }  //end of class

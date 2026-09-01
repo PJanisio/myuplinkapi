@@ -8,7 +8,7 @@ For more information -> [look at wiki pages](https://github.com/PJanisio/myuplin
 
 ### What is needed?
 
-- [x] PHP version 7.4+
+- [x] PHP version 8+
 
 - [x] Account and application created on [myUplink](https://dev.myuplink.com/login)
 

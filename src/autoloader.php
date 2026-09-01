@@ -1,4 +1,10 @@
 <?php
+/*
+myuplinkphp - class to connect and fetch data from Nibe heat pump
+Author: Pawel 'Pavlus' Janisio
+License: GPL v3
+github: https://github.com/PJanisio/myuplinkapi
+*/
 
 #CLASS AUTOLOADER
 

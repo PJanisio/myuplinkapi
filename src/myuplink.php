@@ -1,7 +1,6 @@
 <?php
 /*
 myuplinkphp - class to connect and fetch data from Nibe heat pump
-Version: 1.2.8
 Author: Pawel 'Pavlus' Janisio
 License: GPL v3
 github: https://github.com/PJanisio/myuplinkapi
@@ -14,7 +13,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.2.8';
+	const VERSION = '1.2.9';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -125,7 +124,8 @@ class myuplink
 
 		$ctx = stream_context_create($opts);
 		$json_handler = file_get_contents($url, 0, $ctx);
-		$jsonObj = json_decode($json_handler);
+        //cast json_handler to string
+        $jsonObj = json_decode((string)$json_handler);
 
 		$this->lastVersion = strval(substr($jsonObj->tag_name, 2));
 
@@ -179,7 +179,7 @@ class myuplink
 
 		//first we need to check if we have a token, than if token is valid
 		if (is_array($this->checkTokenStatus())) {
-			$this->authorized == TRUE;
+			$this->authorized = TRUE;
 			//load endpoints available
 			$this->loadEndpoints();
 
@@ -211,9 +211,12 @@ class myuplink
 				$c_answer = curl_exec($c);
 
 				//we should have a token here, debug output if needed
-				$this->debugMsg('DEBUG: MyUplink.com answer:', json_decode($c_answer));
-				//check answer and token parsing
-				$token = json_decode($c_answer, TRUE);
+                //cast c_answer to string to avoid passing boolean to json_decode
+
+                $this->debugMsg('DEBUG: MyUplink.com answer:', json_decode((string)$c_answer));
+                //check answer and token parsing
+                $token = json_decode((string)$c_answer, TRUE);
+
 				if ($token == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
 
 					//we didnt received token :(
@@ -233,12 +236,9 @@ class myuplink
 
 					if ($saveToken) {
 						$this->msg('Token saved to ' . $this->config['jsonOutPath'] . 'token.json. Reloading page. Please wait...');
-						$this->authorized == TRUE;
+						$this->authorized = TRUE;
 					}
 
-					if (isset($c)) {
-						curl_close($c);
-					}
 					$this->redirectMe($this->config['redirectUri'], 0);
 					//we need to return false and reload to check again token status
 					return FALSE;
@@ -269,10 +269,10 @@ class myuplink
 		$c_answer = curl_exec($c);
 
 		//we should have a token here, debug output if needed
-		$this->debugMsg('DEBUG: MyUplink.com answer:', json_decode($c_answer));
+        $this->debugMsg('DEBUG: MyUplink.com answer:', json_decode((string)$c_answer));
 
-		//check answer and token parsing
-		$token = json_decode($c_answer, TRUE);
+        //check answer and token parsing
+        $token = json_decode((string)$c_answer, TRUE);
 		if ($token == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
 
 			//we didnt received token :(
@@ -281,11 +281,6 @@ class myuplink
 				$this->redirectMe($this->config['redirectUri'], 0);
 			} else {
 				$this->msg('Error resolving token: ' . $c_answer);
-
-				if (isset($c)) {
-					curl_close($c);
-				}
-
 				$this->redirectMe($this->config['redirectUri'], 3);
 
 				return FALSE;
@@ -295,11 +290,6 @@ class myuplink
 			$saveToken = file_put_contents($this->config['jsonOutPath'] . 'token.json', json_encode($token));
 			if ($saveToken) {
 				$this->msg('Token saved to ' . $this->config['jsonOutPath'] . 'token.json');
-			}
-
-			//close connection
-			if (isset($c)) {
-				curl_close($c);
 			}
 
 			return TRUE;
@@ -358,7 +348,9 @@ class myuplink
 	public function checkTokenStatus()
 	{
 
-		$this->tokenStatus = json_decode(@file_get_contents($this->config['jsonOutPath'] . 'token.json'), TRUE);
+		// Read file first, then parse to avoid passing false to json_decode
+        $jsonContent = @file_get_contents($this->config['jsonOutPath'] . 'token.json');
+        $this->tokenStatus = $jsonContent ? json_decode($jsonContent, TRUE) : NULL;
 
 		$this->debugMsg('DEBUG: Token Status:', $this->tokenStatus);
 
@@ -425,9 +417,9 @@ class myuplink
 
 
 		//see raw answer 
-		$this->debugMsg('DEBUG [READ]: MyUplink.com answer:', json_decode($c_answer));
+        $this->debugMsg('DEBUG [READ]: MyUplink.com answer:', json_decode((string)$c_answer));
 
-		$data = json_decode($c_answer, TRUE);
+        $data = json_decode((string)$c_answer, TRUE);
 
 		//204 is a special htttp response f.e for API ping
 		if ($data == NULL and curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
@@ -447,12 +439,6 @@ class myuplink
 				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
 				$this->msg('Empty answer from GET [' . $endpoint . ']: ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . $c_answer);
-
-				if (isset($c)) {
-					curl_close($c);
-				}
-
-
 				return FALSE;
 			}
 		} else {
@@ -464,11 +450,6 @@ class myuplink
 
 					$this->msg('Data from GET [' . $endpoint . '] saved to ' . $this->config['jsonOutPath'] . $jsonName);
 				}
-			}
-
-			//close connection
-			if (isset($c)) {
-				curl_close($c);
 			}
 
 			//returns TRUE if httpcontent == 204 (no data)
