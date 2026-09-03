@@ -257,7 +257,7 @@ class myuplinkGet extends myuplink
     }
 
 
-    /*
+   /*
    Get actual and newest firmware
    save to json
    returns object of array
@@ -292,8 +292,6 @@ class myuplinkGet extends myuplink
     public function getAllAlerts()
     {
         //send request to API
-        //paging not supported currently
-
         $this->allAlerts = $this->myuplink->getData($this->newEndpoints['all-alerts']);
         //return object
         return $this->allAlerts;
@@ -341,45 +339,93 @@ class myuplinkGet extends myuplink
 
         //return array of results
         return $this->all;
-
-        /*
-        getAll() function will output a mutlidimensional array
-        it makes very easy to get value of desired parameter
-        example below of current firmware version
-
-        $this->all['firmware']['currentFwVersion'];
-        
-        use var_dump($this->all) to help yourself :)
-        */
     }
 
     /*
     Get device points from V2 API (alternative to V3)
     returns object of array
     */
-        public function getDevicePointsV2()
-        {
-            $this->devicePointsV2 = $this->myuplink->getData($this->newEndpoints['devicePointsV2']);
-            return $this->devicePointsV2;
-        }
+    public function getDevicePointsV2()
+    {
+        $this->devicePointsV2 = $this->myuplink->getData($this->newEndpoints['devicePointsV2']);
+        return $this->devicePointsV2;
+    }
 
     /*
     Get service info categories for diagnostic purposes
     returns object of array
     */
-        public function getServiceInfoCategories()
-        {
-            $this->serviceInfoCategories = $this->myuplink->getData($this->newEndpoints['serviceInfoCategories']);
-            return $this->serviceInfoCategories;
-        }
+    public function getServiceInfoCategories()
+    {
+        $this->serviceInfoCategories = $this->myuplink->getData($this->newEndpoints['serviceInfoCategories']);
+        return $this->serviceInfoCategories;
+    }
 
     /*
     Get system specifics by System ID
     returns object of array
     */
-        public function getSystemById()
-        {
-            $this->systemById = $this->myuplink->getData($this->newEndpoints['systemById']);
-            return $this->systemById;
+    public function getSystemById()
+    {
+        $this->systemById = $this->myuplink->getData($this->newEndpoints['systemById']);
+        return $this->systemById;
+    }
+
+    /*
+     * Get a simplified associative array mapping all parameter IDs to their current values
+     * returns array [parameterId => value]
+     */
+    public function getParametersMap(): array
+    {
+        $map = array();
+
+        if (empty($this->devicePoints)) {
+            $this->getDevicePoints();
         }
+
+        if (is_array($this->devicePoints)) {
+            foreach ($this->devicePoints as $point) {
+                $id = is_object($point) ? ($point->parameterId ?? null) : ($point['parameterId'] ?? null);
+                $val = is_object($point) ? ($point->value ?? null) : ($point['value'] ?? null);
+
+                if ($id !== null) {
+                    $map[$id] = $val;
+                }
+            }
+        }
+
+        return $map;
+    }
+
+    /*
+     * Get a detailed list of all parameters including name, value, unit, and writable status
+     * returns array
+     */
+    public function getDetailedParametersList(): array
+    {
+        $list = array();
+
+        if (empty($this->devicePoints)) {
+            $this->getDevicePoints();
+        }
+
+        if (is_array($this->devicePoints)) {
+            foreach ($this->devicePoints as $point) {
+                $id = is_object($point) ? ($point->parameterId ?? null) : ($point['parameterId'] ?? null);
+
+                if ($id !== null) {
+                    $list[] = [
+                        'parameterId' => $id,
+                        'name' => is_object($point) ? ($point->parameterName ?? '') : ($point['parameterName'] ?? ''),
+                        'value' => is_object($point) ? ($point->value ?? null) : ($point['value'] ?? null),
+                        'strVal' => is_object($point) ? ($point->strVal ?? '') : ($point['strVal'] ?? ''),
+                        'unit' => is_object($point) ? ($point->parameterUnit ?? '') : ($point['parameterUnit'] ?? ''),
+                        'writable' => is_object($point) ? ($point->writable ?? false) : ($point['writable'] ?? false),
+                    ];
+                }
+            }
+        }
+
+        return $list;
+    }
 }  //end of class

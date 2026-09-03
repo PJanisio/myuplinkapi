@@ -2,14 +2,13 @@
 
 ## What is it?
 
-It`s PHP class to authorize, get and set data for Nibe devices using **Nibe myUplink** -> successor of NibeUplink (which will be closed summer 2024).  Entry level to use this tool is very low, so you can easily get data from you device with basic php skills.
+It`s PHP class to authorize, get and set data for Nibe devices using **Nibe myUplink** -> successor of NibeUplink (which will be closed summer 2024). Entry level to use this tool is very low, so you can easily get and modify data from your device with basic php skills.
 
 For more information -> [look at wiki pages](https://github.com/PJanisio/myuplinkapi/wiki).
 
 ### What is needed?
 
-- [x] PHP version 8+
-
+- [x] PHP version 7.4+ (including 8.5)
 - [x] Account and application created on [myUplink](https://dev.myuplink.com/login)
 
 ### What is not needed?
@@ -18,7 +17,7 @@ For more information -> [look at wiki pages](https://github.com/PJanisio/myuplin
 
 ### What is a goal of this project? And can I contribute?
 
-Goal is to have *easy, non dependent* class which will be cron ready to fetch all heat-pump data into json and in case of premium subscription - also set some parameters. And of course everyone can contribute to this repo.
+Goal is to have *easy, non dependent* class which will be cron ready to fetch all heat-pump data into json and allow changing parameters (such as running water heating on demand). And of course everyone can contribute to this repo.
 
 ---
 
@@ -33,17 +32,10 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 4. Open **config.php** and fill below settings as written in comments:
 
 ```php
-
 'clientID' => 'xxxxxxxxx', //from dev.myuplink.com
-
 'clientSecret' => 'xxxxxxxxxxx', //from dev.myuplink.com
-
 'redirectUri' => 'https://xxxxx/myuplink/', // from dev.myuplink.com - your absolute path where index.php is stored
-
 'jsonOutPath' => '/xxxx/xxxx/myuplink/json/', //your absolute path when you will store json files as well as token.json
-
-  
-
 ```
 
 <sub>* redirectUri is a web directory on which you pasted **myuplink class** - please make sure it is the same web URL as you saved in your Myuplink app.</sub>
@@ -54,14 +46,11 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 
 ## Example
 
-Below example is exactly the content of **index.php**
+Below example is the basic content of **index.php** for fetching data.
 
-**Outcome**: will fetch all device data and save into jSON files and additionally returns array that you can access  in your app.
-
-More examples you can check at [wiki pages](https://github.com/PJanisio/myuplinkapi/wiki).
+**Outcome**: will fetch all device data and save into jSON files and additionally returns array that you can access in your app.
 
 ```php
-
 //include autoloader for classes
 include(__DIR__ . '/src/autoloader.php');
 
@@ -77,7 +66,27 @@ if ($nibe->authorizeAPI() == TRUE) {
     //$data is an array with key = endpoint key
     $data = $nibeGet->getALL();
 }
+```
 
+### Example - Changing parameters (Setting data)
+
+To modify parameters (such as hot water boost or heating offsets), use the `myuplinkSet` class.
+
+```php
+//include autoloader for classes
+include(__DIR__ . '/src/autoloader.php');
+
+//start main class and fetch config
+$nibe = new myuplink(__DIR__ . '/config.php');
+
+//authorization, getting token and its status
+if ($nibe->authorizeAPI() == TRUE) {
+    // WARNING: Changing heat pump parameters via API is risky and can affect your system operation.
+    $nibeSet = new myuplinkSet($nibe);
+    
+    // Set hot water boost (Mode 1: 3 hr, Mode 2: 6 hr, Mode 3: 12 hr, Mode 4: One-time incr., Mode 0: Off)
+    $nibeSet->setHotWaterBoost(1);
+}
 ```
 
 If you doesn`t want to get all data everytime, look at **/src/myuplinkGet.php** for single methods.
@@ -89,5 +98,4 @@ For methods description you can look at [**API documentation**](https://api.myup
 ### Short roadmap
 
 - [x] v.1.x.x - Class can authorize and get all data from Nibe device
-
-- [ ] v.2.x.x - Class can change the parameters (f.e run water heating on demand)
+- [x] v.2.x.x - Class can change the parameters (f.e run water heating on demand)

@@ -27,4 +27,13 @@ if ($nibe->authorizeAPI() == TRUE) {
     //get all possible endpoints, put to array and save to jSON
     //$data is an array with key = endpoint key
     $data = $nibeGet->getALL();
+
+    // Example: Setting parameters using myuplinkSet
+    // WARNING: Changing heat pump parameters via API is risky and can affect your system operation. 
+    // Uncomment and use at your own risk.
+    /*
+    $nibeSet = new myuplinkSet($nibe);
+    // Set hot water boost (Mode 1: 3 hr, Mode 2: 6 hr, Mode 3: 12 hr, Mode 4: One-time incr., Mode 0: Off)
+    $nibeSet->setHotWaterBoost(1);
+    */
 }

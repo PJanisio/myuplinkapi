@@ -13,7 +13,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '1.2.9';
+	const VERSION = '2.0.0';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -24,7 +24,7 @@ class myuplink
 	public $token = array();
 	public $tokenStatus = array();
 	public int $tokenLife = 0;
-	protected string $msg = '';
+	public string $msg = '';
 	protected string $debug = '';
 
 
@@ -66,7 +66,7 @@ class myuplink
 		  Internal function to format myuplink class messages
 		  returns null 
 		  */
-	protected function msg(string $text): void
+	public function msg(string $text): void
 	{
 
 		//if running from terminal or cron
@@ -463,4 +463,40 @@ class myuplink
 			}
 		}
 	}
+	
+	/*
+     * Function to patch/update data in API (PATCH)
+     * returns output if success
+     * returns FALSE on fail
+     */
+    public function patchData(string $endpoint, array $data, int $successHTTP = 200)
+    {
+        $jsonName = array_search($endpoint, $this->endpoints) . '_set.json';
+
+        $c = curl_init();
+        curl_setopt($c, CURLOPT_URL, "https://api.myuplink.com" . $endpoint);
+        curl_setopt($c, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($c, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $this->tokenStatus['access_token'],
+            'Content-Type: application/json'
+        ));
+        curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($c, CURLOPT_HTTP_VERSION, $this->config['curl_http_version']);
+
+        $c_answer = curl_exec($c);
+        
+        // Cast c_answer to string to avoid passing boolean to json_decode
+        $this->debugMsg('DEBUG [PATCH]: MyUplink.com answer:', json_decode((string)$c_answer));
+
+        $responseData = json_decode((string)$c_answer, TRUE);
+
+        if (curl_error($c) != NULL || curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
+            $this->msg('Error updating data on [' . $endpoint . ']: HTTP ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . ' - ' . $c_answer);
+            return FALSE;
+        } else {
+            $this->msg('Data successfully updated on [' . $endpoint . ']');
+            return $responseData !== NULL ? $responseData : TRUE;
+        }
+    }
 } //end of class
