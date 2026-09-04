@@ -13,7 +13,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '2.0.0';
+	const VERSION = '2.0.1';
 
 	public string $lastVersion = '';
 	public $config = array();
