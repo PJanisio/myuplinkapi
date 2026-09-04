@@ -10,19 +10,23 @@ github: https://github.com/PJanisio/myuplinkapi
 
 class myuplinkSet extends myuplinkGet
 {
+    // Known parameter ID fallbacks for common operations
+    private const PARAM_HOT_WATER_BOOST = '48132';
+    private const PARAM_HEATING_OFFSET = '47011';
 
-    /*
+    /**
      * Constructor inherits from myuplinkGet
+     * @param myuplink $myuplink Parent myuplink class instance
      */
     public function __construct($myuplink)
     {
         parent::__construct($myuplink);
     }
 
-    /*
+    /**
      * Internal helper to find parameter ID dynamically from the locally saved JSON file
-     * category: string (e.g., 'sh-hwBoost', 'sh-indoorSpOffsHeat')
-     * returns string|null
+     * @param string $category Smart home category (e.g., 'sh-hwBoost', 'sh-indoorSpOffsHeat')
+     * @return string|null Parameter ID if found, null otherwise
      */
     protected function getParameterIdByCategory(string $category): ?string
     {
@@ -34,7 +38,7 @@ class myuplinkSet extends myuplinkGet
         }
 
         $jsonContent = @file_get_contents($jsonFilePath);
-        $points = $jsonContent ? json_decode($jsonContent, TRUE) : null;
+        $points = $jsonContent ? json_decode($jsonContent, true) : null;
 
         if (is_array($points)) {
             foreach ($points as $point) {
@@ -49,8 +53,12 @@ class myuplinkSet extends myuplinkGet
         return null;
     }
 
-    /*
+    /**
      * Internal helper to resolve parameter ID dynamically with safety check and logging
+     * @param string $category Smart home category
+     * @param string $fallbackId Hardcoded fallback parameter ID
+     * @param string $parameterName Human-readable parameter name for debugging
+     * @return string Resolved parameter ID or fallback
      */
     protected function resolveParameterIdOrWarn(string $category, string $fallbackId, string $parameterName): string
     {
@@ -65,11 +73,11 @@ class myuplinkSet extends myuplinkGet
         }
     }
 
-    /*
+    /**
      * Update a specific parameter value on the device using PATCH method
-     * parameterId: string (e.g., '47011' for heating offset)
-     * value: int|float|string
-     * returns bool|array
+     * @param string $parameterId Parameter ID (e.g., '47011' for heating offset)
+     * @param int|float|string $value Value to set
+     * @return array|bool Response data on success, false on error
      */
     public function setParameter(string $parameterId, $value)
     {
@@ -86,49 +94,43 @@ class myuplinkSet extends myuplinkGet
         return $result;
     }
 
-    /*
+    /**
      * Reset active device alarms if permitted
-     * returns bool
+     * @return array|bool Success response or false if not available
      */
     public function resetAlarm()
     {
-        if (isset($this->device['availableFeatures']->resetAlarm) && $this->device['availableFeatures']->resetAlarm === TRUE) {
+        if (isset($this->device['availableFeatures']->resetAlarm) && $this->device['availableFeatures']->resetAlarm === true) {
             $endpoint = '/v2/devices/' . $this->systemInfo['deviceId'] . '/resetAlarm';
             return $this->myuplink->patchData($endpoint, [], 200);
         } else {
             $this->msg('Reset alarm feature is not available for this device.');
-            return FALSE;
+            return false;
         }
     }
 
-    /*
+    /**
      * Boost hot water production
-     * mode: int 
-     * Available mode values:
-     * 0 - Off
-     * 1 - 3 hr
-     * 2 - 6 hr
-     * 3 - 12 hr
-     * 4 - One-time incr.
-     * returns bool|array
+     * @param int $mode Mode value (0=Off, 1=3hr, 2=6hr, 3=12hr, 4=One-time increment)
+     * @return array|bool Response data on success, false on error
      */
     public function setHotWaterBoost(int $mode)
     {
         // Resolve parameter ID dynamically with fallback safety check
-        $parameterId = $this->resolveParameterIdOrWarn('sh-hwBoost', '48132', 'Hot Water Boost');
+        $parameterId = $this->resolveParameterIdOrWarn('sh-hwBoost', self::PARAM_HOT_WATER_BOOST, 'Hot Water Boost');
         
         return $this->setParameter($parameterId, $mode);
     }
 
-    /*
+    /**
      * Set heating offset climate system 1
-     * offsetValue: int|float (typically between -10 and 10)
-     * returns bool|array
+     * @param float $offsetValue Offset value (typically between -10 and 10)
+     * @return array|bool Response data on success, false on error
      */
     public function setHeatingOffset(float $offsetValue)
     {
         // Resolve parameter ID dynamically with fallback safety check
-        $parameterId = $this->resolveParameterIdOrWarn('sh-indoorSpOffsHeat', '47011', 'Heating Offset');
+        $parameterId = $this->resolveParameterIdOrWarn('sh-indoorSpOffsHeat', self::PARAM_HEATING_OFFSET, 'Heating Offset');
         
         return $this->setParameter($parameterId, $offsetValue);
     }
