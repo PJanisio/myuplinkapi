@@ -91,8 +91,7 @@ class myuplink
 	 */
 	protected function redirectMe(string $uri, int $delay = 3): void
 	{
-
-		return header('Refresh:' . $delay . '; url=' . $uri);
+		header('Refresh:' . $delay . '; url=' . $uri);
 	}
 
 
