@@ -28,10 +28,11 @@ class myuplink
 	protected string $debug = '';
 
 
-	/*
-		  Prepare configuration variables
-		  returns array with config variables
-		   */
+	/**
+	 * Prepare configuration variables
+	 * @param string $configPath Path to config file
+	 * @return array Config variables
+	 */
 	public function __construct(string $configPath)
 	{
 
@@ -51,67 +52,101 @@ class myuplink
 		return $this->config;
 	}
 
-	/*
-		  Internal function to rtedirect after class operations
-		  return function of redirect
-		  */
-	protected function redirectMe(string $uri, int $delay = 3)
+	/**
+	 * Helper method to initialize and configure CURL request
+	 * @param string $url Target URL
+	 * @param string $method HTTP method (GET, POST, PATCH, etc.)
+	 * @param string|null $postFields Request body for POST/PATCH requests
+	 * @param array $headers HTTP headers
+	 * @return object CURL resource handle
+	 */
+	private function initCurl(string $url, string $method = 'GET', ?string $postFields = null, array $headers = []): object
+	{
+		$c = curl_init();
+		curl_setopt($c, CURLOPT_URL, $url);
+		
+		if ($method !== 'GET') {
+			curl_setopt($c, CURLOPT_CUSTOMREQUEST, $method);
+		}
+		
+		if ($postFields !== null) {
+			curl_setopt($c, CURLOPT_POSTFIELDS, $postFields);
+		}
+		
+		if (!empty($headers)) {
+			curl_setopt($c, CURLOPT_HTTPHEADER, $headers);
+		}
+		
+		curl_setopt($c, CURLOPT_HTTP_VERSION, $this->config['curl_http_version']);
+		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+		
+		return $c;
+	}
+
+	/**
+	 * Internal function to redirect after class operations
+	 * @param string $uri Target URI
+	 * @param int $delay Delay in seconds
+	 * @return void
+	 */
+	protected function redirectMe(string $uri, int $delay = 3): void
 	{
 
 		return header('Refresh:' . $delay . '; url=' . $uri);
 	}
 
 
-	/*
-		  Internal function to format myuplink class messages
-		  returns null 
-		  */
+	/**
+	 * Internal function to format myuplink class messages
+	 * @param string $text Message text
+	 * @return void
+	 */
 	public function msg(string $text): void
 	{
+
+		$eol = (php_sapi_name() == 'cli') ? PHP_EOL : "<br />";
 
 		//if running from terminal or cron
 		if (php_sapi_name() == 'cli') {
 
-			$eol = (php_sapi_name() == 'cli') ? PHP_EOL : "<br />";
+			$output = '*=======================================================================================================================================*' . $eol;
+			$output .= '[' . date("Y-m-d H:i:s") . '] ' . $text . $eol;
+			$output .= '*=======================================================================================================================================*' . $eol;
 
-			$this->msg .= '*=======================================================================================================================================*' . $eol;
-			$this->msg .= '[' . date("Y-m-d H:i:s") . '] ' . $text . $eol;
-			$this->msg .= '*=======================================================================================================================================*' . $eol;
-
-			echo $this->msg . $eol;
-
-			$this->msg = '';
+			echo $output . $eol;
 		}
 		//running from browser
 		else {
 
-			echo $this->msg = '<fieldset><legend> [' . date("Y-m-d H:i:s") . '] <b>System message</b></legend>
+			echo '<fieldset><legend> [' . date("Y-m-d H:i:s") . '] <b>System message</b></legend>
 					' . $text . '
 				            </fieldset><br>';
 		}
 	}
 
-	/*
-		  Internal function to send debug <pre> messages
-		  return var_dump of variable
-		  */
+	/**
+	 * Internal function to send debug <pre> messages
+	 * @param string $title Debug title
+	 * @param mixed $var Variable to dump
+	 * @return void
+	 */
 	protected function debugMsg(string $title, $var): void
 	{
 
-		if ($this->config['debug'] == TRUE) {
+		if ($this->config['debug']) {
 			error_reporting(E_ALL);
-			echo $this->debug = '<pre>' . $title;
+			echo '<pre>' . $title;
 			var_dump($var);
 			echo '</pre>';
 		}
 	}
 
 
-	/*
-		  Internal function to check if there are newer RELEASED version of this class
-		  return string with most updated version
-		  */
-	public function checkUpdate()
+	/**
+	 * Internal function to check if there are newer RELEASED version of this class
+	 * @return string|null Most updated version or null if current version is up to date
+	 */
+	public function checkUpdate(): ?string
 	{
 
 		$url = 'https://api.github.com/repos/PJanisio/myuplinkapi/releases/latest';
@@ -134,15 +169,16 @@ class myuplink
 			return $this->lastVersion;
 		} else {
 			//no need to update
-			return NULL;
+			return null;
 		}
 	}
 
 
-	/*
-		  returns array with endpoints
-		  */
-	protected function loadEndpoints()
+	/**
+	 * Load endpoints from config file
+	 * @return array Endpoints array
+	 */
+	protected function loadEndpoints(): array
 	{
 
 		include($this->config['configPath']);
@@ -156,11 +192,11 @@ class myuplink
 	}
 
 
-	/*
-		  Generate auth URL for myuplink
-		  returns string with URL
-		  */
-	public function authURL()
+	/**
+	 * Generate auth URL for myuplink
+	 * @return string Authorization URL
+	 */
+	public function authURL(): string
 	{
 
 		$this->authURL = 'https://api.myuplink.com/oauth/authorize?response_type=code&scope=' . htmlentities($this->config['scope']) . '&client_id=' . $this->config['clientID'] . '&redirect_uri=' . $this->config['redirectUri'];
@@ -169,44 +205,38 @@ class myuplink
 	}
 
 
-	/*
-		  Main fuinction. Checks authorization, checks fetch token and check token Status
-		  returns TRUE
-		  returns link for authorization
-		  */
-	public function authorizeAPI()
+	/**
+	 * Main function. Checks authorization, fetches token and checks token Status
+	 * @return bool|string TRUE if authorized, FALSE otherwise, or authorization link
+	 */
+	public function authorizeAPI(): bool
 	{
 
 		//first we need to check if we have a token, than if token is valid
 		if (is_array($this->checkTokenStatus())) {
-			$this->authorized = TRUE;
+			$this->authorized = true;
 			//load endpoints available
 			$this->loadEndpoints();
 
 			//we are already authorized!
 			$this->msg('You are authorized! Token will expire in ' . $this->tokenLife . ' seconds.');
-			return TRUE;
-		} else if (!isset($_GET['code']) and $this->authorized == FALSE) {
+			return true;
+		} else if (!isset($_GET['code']) && !$this->authorized) {
 
 			$this->msg('You are not authorized. Please follow this <a href="' . $this->authURL() . '">LINK</a>');
-			return FALSE;
+			return false;
 		}
 
 		//we are not authorized....yet :)
 		//check if user if after authorization from myuplink
-		if ($this->authorized == FALSE) {
+		if (!$this->authorized) {
 
-			if (isset($_GET) and isset($_GET['code'])) {
+			if (isset($_GET['code'])) {
 				$code = urlencode($_GET['code']);
 
-				$c = curl_init();
-				curl_setopt($c, CURLOPT_URL, 'https://api.myuplink.com/oauth/token');
-				curl_setopt($c, CURLOPT_POST, 1);
-				curl_setopt($c, CURLOPT_POSTFIELDS, 'grant_type=authorization_code&client_id=' . urlencode($this->config['clientID']) . '&client_secret=' . urlencode($this->config['clientSecret']) . '&code=' . $code . '&redirect_uri=' . $this->config['redirectUri']);
-				curl_setopt($c, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-				curl_setopt($c, CURLOPT_HTTP_VERSION, $this->config['curl_http_version']);
-				curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-
+				$postFields = 'grant_type=authorization_code&client_id=' . urlencode($this->config['clientID']) . '&client_secret=' . urlencode($this->config['clientSecret']) . '&code=' . $code . '&redirect_uri=' . $this->config['redirectUri'];
+				
+				$c = $this->initCurl('https://api.myuplink.com/oauth/token', 'POST', $postFields, ['Content-Type: application/x-www-form-urlencoded']);
 
 				$c_answer = curl_exec($c);
 
@@ -215,19 +245,19 @@ class myuplink
 
                 $this->debugMsg('DEBUG: MyUplink.com answer:', json_decode((string)$c_answer));
                 //check answer and token parsing
-                $token = json_decode((string)$c_answer, TRUE);
+                $token = json_decode((string)$c_answer, true);
 
-				if ($token == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
+				if ($token === null || curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
 
 					//we didnt received token :(
-					if (curl_error($c) != NULL) {
+					if (curl_error($c)) {
 						$this->msg('Error resolving token: ' . curl_error($c));
 						$this->redirectMe($this->config['redirectUri'], 3);
-						return FALSE;
+						return false;
 					} else {
 						$this->msg('Error resolving token: ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . $c_answer);
 						$this->redirectMe($this->config['redirectUri'], 3);
-						return FALSE;
+						return false;
 					}
 				} else {
 					//save token
@@ -236,35 +266,28 @@ class myuplink
 
 					if ($saveToken) {
 						$this->msg('Token saved to ' . $this->config['jsonOutPath'] . 'token.json. Reloading page. Please wait...');
-						$this->authorized = TRUE;
+						$this->authorized = true;
 					}
 
 					$this->redirectMe($this->config['redirectUri'], 0);
 					//we need to return false and reload to check again token status
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 
 
-	/*
-		  Refresh token if expired, can be used manually
-		  returns TRUE if success 
-		  returns FALSE when error
-		  */
-	public function refreshToken()
+	/**
+	 * Refresh token if expired, can be used manually
+	 * @return bool True if success, false on error
+	 */
+	public function refreshToken(): bool
 	{
 
-
-		$c = curl_init();
-		curl_setopt($c, CURLOPT_URL, 'https://api.myuplink.com/oauth/token');
-		curl_setopt($c, CURLOPT_POST, 1);
-		curl_setopt($c, CURLOPT_POSTFIELDS, 'grant_type=refresh_token&client_id=' . urlencode($this->config['clientID']) . '&client_secret=' . urlencode($this->config['clientSecret']) . '&refresh_token=' . $this->tokenStatus['refresh_token']);
-		curl_setopt($c, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-		curl_setopt($c, CURLOPT_HTTP_VERSION, $this->config['curl_http_version']);
-		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-
+		$postFields = 'grant_type=refresh_token&client_id=' . urlencode($this->config['clientID']) . '&client_secret=' . urlencode($this->config['clientSecret']) . '&refresh_token=' . $this->tokenStatus['refresh_token'];
+		
+		$c = $this->initCurl('https://api.myuplink.com/oauth/token', 'POST', $postFields, ['Content-Type: application/x-www-form-urlencoded']);
 
 		$c_answer = curl_exec($c);
 
@@ -272,18 +295,18 @@ class myuplink
         $this->debugMsg('DEBUG: MyUplink.com answer:', json_decode((string)$c_answer));
 
         //check answer and token parsing
-        $token = json_decode((string)$c_answer, TRUE);
-		if ($token == NULL or curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
+        $token = json_decode((string)$c_answer, true);
+		if ($token === null || curl_getinfo($c, CURLINFO_HTTP_CODE) != 200) {
 
 			//we didnt received token :(
-			if (curl_error($c) != NULL) {
+			if (curl_error($c)) {
 				$this->msg('Error resolving token: ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 0);
 			} else {
 				$this->msg('Error resolving token: ' . $c_answer);
 				$this->redirectMe($this->config['redirectUri'], 3);
 
-				return FALSE;
+				return false;
 			}
 		} else {
 			//save token
@@ -292,37 +315,36 @@ class myuplink
 				$this->msg('Token saved to ' . $this->config['jsonOutPath'] . 'token.json');
 			}
 
-			return TRUE;
+			return true;
 		}
 	}
 
 
-	/*
-		  Internal function to clear token 
-		  returns bool
-		  */
-	private function clearToken()
+	/**
+	 * Internal function to clear token 
+	 * @return bool Success status
+	 */
+	private function clearToken(): bool
 	{
 
-		$clear = file_put_contents($this->config['jsonOutPath'] . 'token.json', '');
+		$bytes = file_put_contents($this->config['jsonOutPath'] . 'token.json', '');
 
-		if (!empty(file_get_contents($this->config['jsonOutPath'] . 'token.json'))) {
-			$this->msg('Can not clear token data, check if json folder has a write access');
-			return FALSE;
-		} else if ($clear) {
-			if ($this->config['debug'] == TRUE) {
-				$this->msg('Token have been cleared.');
+		if ($bytes === 0) {
+			if ($this->config['debug']) {
+				$this->msg('Token has been cleared.');
 			}
-			return TRUE;
+			return true;
+		} else {
+			$this->msg('Failed to clear token. Check write permissions.');
+			return false;
 		}
 	}
 
 
-	/*
-		  Function to check if token is still valid 
-		  returns string = 'Token expired' OR
-		  returns int token life in seconds if valid
-		  */
+	/**
+	 * Function to check if token is still valid 
+	 * @return int|string Token life in seconds (int) or 'Token expired' (string)
+	 */
 	public function tokenExpiry()
 	{
 
@@ -340,24 +362,23 @@ class myuplink
 		}
 	}
 
-	/*
-		  Function to check if token is readable and not expired
-		  returns FALSE if any of errors found
-		  returns array of token data if valid
-		  */
+	/**
+	 * Function to check if token is readable and not expired
+	 * @return array|bool Array of token data if valid, false otherwise
+	 */
 	public function checkTokenStatus()
 	{
 
 		// Read file first, then parse to avoid passing false to json_decode
         $jsonContent = @file_get_contents($this->config['jsonOutPath'] . 'token.json');
-        $this->tokenStatus = $jsonContent ? json_decode($jsonContent, TRUE) : NULL;
+        $this->tokenStatus = $jsonContent ? json_decode($jsonContent, true) : null;
 
 		$this->debugMsg('DEBUG: Token Status:', $this->tokenStatus);
 
-		if ($this->tokenStatus == NULL) {
+		if ($this->tokenStatus === null) {
 
 			$this->clearToken();
-			return FALSE;
+			return false;
 		}
 
 		//lets check if our token didnt expired
@@ -369,13 +390,13 @@ class myuplink
 			$this->clearToken();
 
 			//refresh token
-			if ($this->refreshToken() == TRUE) {
+			if ($this->refreshToken()) {
 
-				if ($this->config['debug'] == TRUE) {
+				if ($this->config['debug']) {
 					$this->msg('Token succesfully refreshed!');
 				}
 
-				$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'] . 'token.json'), TRUE);
+				$this->tokenStatus = json_decode(file_get_contents($this->config['jsonOutPath'] . 'token.json'), true);
 
 				//update token expiry
 				$this->tokenExpiry();
@@ -384,22 +405,22 @@ class myuplink
 
 				return $this->tokenStatus;
 			}
-		} else if ($this->tokenStatus != NULL and $this->tokenExpiry() != 'Token expired') {
+		} else if ($this->tokenStatus !== null && $this->tokenExpiry() != 'Token expired') {
 			//returning array
 			return $this->tokenStatus;
 		} else {
 			$this->clearToken();
-			return FALSE;
+			return false;
 		}
 	}
 
-	/*
-		  Function read data from API (GET)
-		  returns output if success
-		  returns FALSE on fail
-		  by default saves output to json file ($save = 1)
-		  */
-
+	/**
+	 * Function read data from API (GET)
+	 * @param string $endpoint API endpoint
+	 * @param int $successHTTP Expected HTTP response code
+	 * @param int $save Save to JSON file (1) or not (0)
+	 * @return array|bool Response data on success, false on error, true for 204 responses
+	 */
 	public function getData(string $endpoint, int $successHTTP = 200, int $save = 1)
 	{
 
@@ -408,21 +429,22 @@ class myuplink
 
 		$jsonName = array_search($endpoint, $this->endpoints) . '.json';
 
-
-		$c = curl_init();
-		curl_setopt($c, CURLOPT_URL, "https://api.myuplink.com" . $endpoint);
-		curl_setopt($c, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->tokenStatus['access_token'] . '', 'Content-Type: application/x-www-form-urlencoded'));
-		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+		$c = $this->initCurl(
+			"https://api.myuplink.com" . $endpoint,
+			'GET',
+			null,
+			['Authorization: Bearer ' . $this->tokenStatus['access_token'], 'Content-Type: application/x-www-form-urlencoded']
+		);
+		
 		$c_answer = curl_exec($c);
-
 
 		//see raw answer 
         $this->debugMsg('DEBUG [READ]: MyUplink.com answer:', json_decode((string)$c_answer));
 
-        $data = json_decode((string)$c_answer, TRUE);
+        $data = json_decode((string)$c_answer, true);
 
 		//204 is a special htttp response f.e for API ping
-		if ($data == NULL and curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
+		if ($data === null && curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
 
 			if (curl_getinfo($c, CURLINFO_HTTP_CODE) == 504) {
 				//gateway error we have timeout from api, that could mean we have lost authorization status
@@ -430,23 +452,23 @@ class myuplink
 
 				$this->clearToken();
 				$this->redirectMe($this->config['redirectUri'], 0);
-				return FALSE;
+				return false;
 			}
 
 			//we didnt received answer
-			if (curl_error($c) != NULL) {
+			if (curl_error($c)) {
 				$this->msg('Error resolving answer from GET [' . $endpoint . ']: ' . curl_error($c));
 				$this->redirectMe($this->config['redirectUri'], 3);
 			} else {
 				$this->msg('Empty answer from GET [' . $endpoint . ']: ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . $c_answer);
-				return FALSE;
+				return false;
 			}
 		} else {
 
 			if ($save == 1) {
 				$savetoJson = file_put_contents($this->config['jsonOutPath'] . $jsonName, json_encode($data));
 
-				if ($savetoJson == TRUE) {
+				if ($savetoJson) {
 
 					$this->msg('Data from GET [' . $endpoint . '] saved to ' . $this->config['jsonOutPath'] . $jsonName);
 				}
@@ -455,7 +477,7 @@ class myuplink
 			//returns TRUE if httpcontent == 204 (no data)
 			if ($successHTTP == 204) {
 				$this->msg('Response from GET [' . $endpoint . '] is succesful! (204)');
-				return TRUE;
+				return true;
 			}
 			//returns data if httpcontent == 200
 			else if ($successHTTP == 200) {
@@ -464,39 +486,40 @@ class myuplink
 		}
 	}
 	
-	/*
-     * Function to patch/update data in API (PATCH)
-     * returns output if success
-     * returns FALSE on fail
-     */
+	/**
+	 * Function to patch/update data in API (PATCH)
+	 * @param string $endpoint API endpoint
+	 * @param array $data Data to patch
+	 * @param int $successHTTP Expected HTTP response code
+	 * @return array|bool Response data on success, false on error, true for 204/empty responses
+	 */
     public function patchData(string $endpoint, array $data, int $successHTTP = 200)
     {
         $jsonName = array_search($endpoint, $this->endpoints) . '_set.json';
 
-        $c = curl_init();
-        curl_setopt($c, CURLOPT_URL, "https://api.myuplink.com" . $endpoint);
-        curl_setopt($c, CURLOPT_CUSTOMREQUEST, 'PATCH');
-        curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($c, CURLOPT_HTTPHEADER, array(
-            'Authorization: Bearer ' . $this->tokenStatus['access_token'],
-            'Content-Type: application/json'
-        ));
-        curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($c, CURLOPT_HTTP_VERSION, $this->config['curl_http_version']);
+        $c = $this->initCurl(
+        	"https://api.myuplink.com" . $endpoint,
+        	'PATCH',
+        	json_encode($data),
+        	[
+        		'Authorization: Bearer ' . $this->tokenStatus['access_token'],
+        		'Content-Type: application/json'
+        	]
+        );
 
         $c_answer = curl_exec($c);
         
         // Cast c_answer to string to avoid passing boolean to json_decode
         $this->debugMsg('DEBUG [PATCH]: MyUplink.com answer:', json_decode((string)$c_answer));
 
-        $responseData = json_decode((string)$c_answer, TRUE);
+        $responseData = json_decode((string)$c_answer, true);
 
-        if (curl_error($c) != NULL || curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
+        if (curl_error($c) || curl_getinfo($c, CURLINFO_HTTP_CODE) != $successHTTP) {
             $this->msg('Error updating data on [' . $endpoint . ']: HTTP ' . curl_getinfo($c, CURLINFO_HTTP_CODE) . ' - ' . $c_answer);
-            return FALSE;
+            return false;
         } else {
             $this->msg('Data successfully updated on [' . $endpoint . ']');
-            return $responseData !== NULL ? $responseData : TRUE;
+            return $responseData !== null ? $responseData : true;
         }
     }
 } //end of class
