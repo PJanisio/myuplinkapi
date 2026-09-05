@@ -18,7 +18,8 @@ $config =
 			'jsonOutPath' => '/www/xxxxxxxx/json/', //your absolute path when you will store json files as well as token.json
 			'scope' => 'READSYSTEM WRITESYSTEM offline_access', //dont change
 			'curl_http_version' =>    '\CURL_HTTP_VERSION_1_1', //dont change
-			'debug' => FALSE //TRUE = var_dump of inputs and outputs, set to TRUE if your app is not working
+			'debug' => FALSE, //TRUE = var_dump of inputs and outputs, set to TRUE if your app is not working
+			'silent' => FALSE //TRUE = suppress status messages from msg()
         	];
         	
 			
@@ -51,4 +52,3 @@ $endpoints = [
     'smart-home-mode' => '/v2/systems/{systemId}/smart-home-mode'       // Legacy endpoint for Smart Home modes
     
 ];
-

@@ -13,7 +13,7 @@ class myuplink
 {
 
 	//define main variables
-	const VERSION = '2.0.1';
+	const VERSION = '2.1.0';
 
 	public string $lastVersion = '';
 	public $config = array();
@@ -102,6 +102,9 @@ class myuplink
 	 */
 	public function msg(string $text): void
 	{
+		if ($this->config['silent'] ?? false) {
+			return;
+		}
 
 		$eol = (php_sapi_name() == 'cli') ? PHP_EOL : "<br />";
 
