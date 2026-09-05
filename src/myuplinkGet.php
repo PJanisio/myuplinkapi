@@ -40,9 +40,10 @@ class myuplinkGet extends myuplink
 
 
 
-    /*
-    /Construct will get main system variables like systemID to fetch further data
-    */
+    /**
+     * Construct will get main system variables like systemID to fetch further data
+     * @param myuplink $myuplink Parent myuplink class instance
+     */
     public function __construct($myuplink)
     {
 
@@ -58,10 +59,10 @@ class myuplinkGet extends myuplink
         $this->myuplink->debugMsg('DEBUG: Nibe Systems: ', $this->systemInfo);
     }
 
-    /*
-    Internal function to display connection status
-    returns string
-    */
+    /**
+     * Internal function to display connection status
+     * @return void
+     */
     protected function landingPage(): void
     {
         $FW = $this->getFirmware();
@@ -73,7 +74,7 @@ class myuplinkGet extends myuplink
         }
 
 
-        if ($this->myuplink->checkUpdate() !== NULL) {
+        if ($this->myuplink->checkUpdate() !== null) {
             $classFW = 'Myuplink class version: <b>' . constant('myuplink::VERSION') . '</b> <a href="https://github.com/PJanisio/myuplinkapi/releases/tag/v.' . $this->myuplink->lastVersion . '"> Update available (' . $this->myuplink->lastVersion . ')</a>';
         } else {
 
@@ -92,11 +93,11 @@ class myuplinkGet extends myuplink
         );
     }
 
-    /*
-    Internal function to rewrite all ednpoints and add variables from _construct like systemId and deviceId
-    returns array of newEndpoints
-    */
-    public function newEndpoints()
+    /**
+     * Internal function to rewrite all endpoints and add variables from constructor like systemId and deviceId
+     * @return array Array of new endpoints with placeholders replaced
+     */
+    public function newEndpoints(): array
     {
 
         $toChange = '';
@@ -133,11 +134,11 @@ class myuplinkGet extends myuplink
     }
 
 
-    /*
-   Get function to check iof API is online
-   result TRUE when online
-   */
-    public function pingAPI()
+   /**
+    * Get function to check if API is online
+    * @return bool True when online
+    */
+   public function pingAPI(): bool
     {
         //send request to API (204 response, w/o save to jSON)
         $this->pingAPI = $this->myuplink->getData($this->newEndpoints['ping'], 204, 0);
@@ -146,12 +147,11 @@ class myuplinkGet extends myuplink
     }
 
 
-    /*
-    Get function to receive main system information
-    save to json
-    returns array of parameters
-    */
-    public function getSystemInfo()
+    /**
+     * Get function to receive main system information
+     * @return array Array of system parameters
+     */
+    public function getSystemInfo(): array
     {
 
         //make first get from api and fetch main system info
@@ -172,12 +172,11 @@ class myuplinkGet extends myuplink
         return $this->systemInfo;
     }
 
-    /*
-    Get function to receive all parameters from device
-    save to json
-    returns array of parameters
-    */
-    public function getDevicePoints()
+    /**
+     * Get function to receive all parameters from device
+     * @return array Array of device parameters
+     */
+    public function getDevicePoints(): array
     {
 
         //send request to API
@@ -187,11 +186,10 @@ class myuplinkGet extends myuplink
     }
 
 
-    /*
-    Get additional heater status
-    save to json
-    returns object of array
-    */
+    /**
+     * Get additional heater status
+     * @return array|bool Array with status or false on error
+     */
     public function getAidMode()
     {
 
@@ -202,122 +200,112 @@ class myuplinkGet extends myuplink
     }
 
 
-    /*
-    Get device status
-    save to json
-    returns object of array
+    /**
+    * Get device status
+    * @return array|bool Array with device status or false on error
     */
     public function getDevice()
     {
-        //send request to API
-        $this->device = $this->myuplink->getData($this->newEndpoints['device']);
-        //return object
-        return $this->device;
+       //send request to API
+       $this->device = $this->myuplink->getData($this->newEndpoints['device']);
+       //return object
+       return $this->device;
     }
 
 
-    /*
-    Get smart home categories
-    save to json
-    returns object of array
+    /**
+    * Get smart home categories
+    * @return array|bool Array of categories or false on error
     */
     public function getSmartHomeCat()
     {
-        //send request to API
-        $this->smartHomeCat = $this->myuplink->getData($this->newEndpoints['smart-home-cat']);
-        //return object
-        return $this->smartHomeCat;
+       //send request to API
+       $this->smartHomeCat = $this->myuplink->getData($this->newEndpoints['smart-home-cat']);
+       //return object
+       return $this->smartHomeCat;
     }
 
-    /*
-    Get smart-home-zones
-    save to json
-    returns object of array
+    /**
+    * Get smart-home-zones
+    * @return array|bool Array of zones or false on error
     */
     public function getSmartHomeZones()
     {
-        //send request to API
-        $this->smartHomeZones = $this->myuplink->getData($this->newEndpoints['smart-home-zones']);
-        //return object
-        return $this->smartHomeZones;
+       //send request to API
+       $this->smartHomeZones = $this->myuplink->getData($this->newEndpoints['smart-home-zones']);
+       //return object
+       return $this->smartHomeZones;
     }
 
 
-    /*
-    Get smart-home-mode
-    save to json
-    returns object of array
+    /**
+    * Get smart-home-mode
+    * @return array|bool Array of modes or false on error
     */
     public function getSmartHomeMode()
     {
-        //send request to API
-        $this->smartHomeMode = $this->myuplink->getData($this->newEndpoints['smart-home-mode']);
-        //return object
-        return $this->smartHomeMode;
+       //send request to API
+       $this->smartHomeMode = $this->myuplink->getData($this->newEndpoints['smart-home-mode']);
+       //return object
+       return $this->smartHomeMode;
     }
 
 
-   /*
-   Get actual and newest firmware
-   save to json
-   returns object of array
-   */
+    /**
+    * Get actual and newest firmware
+    * @return array|bool Array with firmware info or false on error
+    */
     public function getFirmware()
     {
-        //send request to API
-        $this->firmware = $this->myuplink->getData($this->newEndpoints['firmware']);
-        //return object
-        return $this->firmware;
+       //send request to API
+       $this->firmware = $this->myuplink->getData($this->newEndpoints['firmware']);
+       //return object
+       return $this->firmware;
     }
 
-    /*
-    Get active alerts from device
-    save to json
-    returns object of array with active alerts
+    /**
+    * Get active alerts from device
+    * @return array|bool Array with active alerts or false on error
     */
     public function getActiveAlerts()
     {
-        //send request to API
-        $this->activeAlerts = $this->myuplink->getData($this->newEndpoints['active-alerts']);
-        //return object
-        return $this->activeAlerts;
+       //send request to API
+       $this->activeAlerts = $this->myuplink->getData($this->newEndpoints['active-alerts']);
+       //return object
+       return $this->activeAlerts;
     }
 
 
-    /*
-    Get all alerts from device
-    save to json
-    returns object of array of all historical alerts (only first page)
+    /**
+    * Get all alerts from device
+    * @return array|bool Array of all historical alerts (only first page) or false on error
     */
     public function getAllAlerts()
     {
-        //send request to API
-        $this->allAlerts = $this->myuplink->getData($this->newEndpoints['all-alerts']);
-        //return object
-        return $this->allAlerts;
+       //send request to API
+       $this->allAlerts = $this->myuplink->getData($this->newEndpoints['all-alerts']);
+       //return object
+       return $this->allAlerts;
     }
 
-    /*
-    Get information about premium subscription
-    save to json
-    returns FALSE when no subscription is valid
-    returns object of array with expire time if valid subscription
+    /**
+    * Get information about premium subscription
+    * @return array|bool False when no subscription is valid, array with expire time if valid
     */
     public function getPremium()
     {
-        //send request to API
-        $this->premium = $this->myuplink->getData($this->newEndpoints['premium']);
-        //return object
-        return $this->premium;
+       //send request to API
+       $this->premium = $this->myuplink->getData($this->newEndpoints['premium']);
+       //return object
+       return $this->premium;
     }
 
 
-    /*
-    Get all data which can be gotten :) all methods together at once
-    save to json
-    returns array of all parameters with key name = endpoint in config.php
-    */
-    public function getAll()
+    /**
+     * Get all data which can be gotten :) all methods together at once
+     * @return array Array of all parameters with key name = endpoint in config.php
+     */
+    public function getAll(): array
     {
         //send requests to API
         $this->all['system'] = $this->getSystemInfo();
@@ -341,30 +329,30 @@ class myuplinkGet extends myuplink
         return $this->all;
     }
 
-    /*
-    Get device points from V2 API (alternative to V3)
-    returns object of array
-    */
+    /**
+     * Get device points from V2 API (alternative to V3)
+     * @return array|bool Array with device points or false on error
+     */
     public function getDevicePointsV2()
     {
         $this->devicePointsV2 = $this->myuplink->getData($this->newEndpoints['devicePointsV2']);
         return $this->devicePointsV2;
     }
 
-    /*
-    Get service info categories for diagnostic purposes
-    returns object of array
-    */
+    /**
+     * Get service info categories for diagnostic purposes
+     * @return array|bool Array of categories or false on error
+     */
     public function getServiceInfoCategories()
     {
         $this->serviceInfoCategories = $this->myuplink->getData($this->newEndpoints['serviceInfoCategories']);
         return $this->serviceInfoCategories;
     }
 
-    /*
-    Get system specifics by System ID
-    returns object of array
-    */
+    /**
+     * Get system specifics by System ID
+     * @return array|bool Array of system details or false on error
+     */
     public function getSystemById()
     {
         $this->systemById = $this->myuplink->getData($this->newEndpoints['systemById']);

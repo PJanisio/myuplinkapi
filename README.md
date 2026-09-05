@@ -36,6 +36,7 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 'clientSecret' => 'xxxxxxxxxxx', //from dev.myuplink.com
 'redirectUri' => 'https://xxxxx/myuplink/', // from dev.myuplink.com - your absolute path where index.php is stored
 'jsonOutPath' => '/xxxx/xxxx/myuplink/json/', //your absolute path when you will store json files as well as token.json
+'silent' => FALSE, //TRUE = suppress status messages; FALSE preserves the default output
 ```
 
 <sub>* redirectUri is a web directory on which you pasted **myuplink class** - please make sure it is the same web URL as you saved in your Myuplink app.</sub>
@@ -43,6 +44,8 @@ Goal is to have *easy, non dependent* class which will be cron ready to fetch al
 5. Save config.php and open browser with **redirectUri** address. And see example below.
 
 6. *Optional* - change debug to TRUE if you want to get detailed api responses.
+
+7. *Optional* - change silent to TRUE to disable status messages produced by `msg()`. The default is FALSE.
 
 ## Example
 
